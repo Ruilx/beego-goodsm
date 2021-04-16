@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh_CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0,minimum-scale=1.0, user-scalable=0" />
+    <meta http-equiv="Cache-Control" content="no-transform">
+    <meta http-equiv="Cache-Control" content="no-siteapp">
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body style="background-color: #E0E0E0">
+<nav class="navbar navbar-expand-lg navbar-fixed-top navbar-light bg-light">
+    <!--<nav class="navbar navbar-inverse navbar-fixed-top">-->
+    <a class="navbar-brand" href="#">Goods Manager</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href="#">主页 <span class="sr-only">(激活)</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">添加货物</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">售货历史</a>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    高级操作
+                </a>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <a class="dropdown-item" href="#">高级操作1</a>
+                    <a class="dropdown-item" href="#">高级操作2</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#">高级操作3</a>
+                </div>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">被禁用的项目</a>
+            </li>
+        </ul>
+        <form class="form-inline my-2 my-lg-0">
+            <input class="form-control mr-sm-2" type="search" placeholder="查询货物" aria-label="查询">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">搜索名称</button>
+        </form>
+    </div>
+</nav>
+
+<div class="container mt-5 col-xs-12" id="main">
+    <div class="jumbotron">
+        <h1 class="display-4">欢迎使用</h1>
+        <p class="lead">Goods Manager系统会帮助您记录您店中货物的进出口的详情和累计的售出量, 您在每次售货或货物变更的时候即时操作, 系统将在每次操作后对记录和统计做出更新, 方便定时统计.</p>
+        <hr class="my-4">
+        <p>现在存库中尚没有货物登记, 可以点击下方按钮或标题栏中"添加货物"增加一条记录.</p>
+        <a class="btn btn-primary btn-lg" href="#" role="button">添加货物</a>
+        <noscript>
+            <p>本系统需要使用JavaScript来进行操作, 请打开浏览器的JavaScript运行选项, 确保系统各项功能正常.</p>
+        </noscript>
+    </div>
+</div>
+
+<div class="container mt-5 col-xs-12" id="main">
+    <div class="row clearfix">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-header">
+                    货物列表
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title">截止yyyy-mm-dd, 现有整体货物%d件, 本日售出%d件, 本月售出%d件</h3>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <table class="table table-striped table-hover table-responsive">
+                            <thead>
+                            <tr>
+                                <th scope="col">ID</th>
+                                <th scope="col">缩略图</th>
+                                <th scope="col">名称</th>
+                                <th scope="col">描述</th>
+                                <th scope="col">单价</th>
+                                <th scope="col">库存</th>
+                                <th scope="col">操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td scope="row">1</td>
+                                <td><img src="" width="100px" height="100px" /></td>
+                                <td>风衣</td>
+                                <td>这是一件风衣</td>
+                                <td>150</td>
+                                <td>5</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group" aria-label="Button group with nested dropdown">
+                                        <div class="btn-group" role="group">
+                                            <button id="btnGroupDropAdvanceGroup_#id" type="button" class="btn btn-light dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                操作
+                                            </button>
+                                            <div class="dropdown-menu" aria-labelledby="btnGroupDropAdvanceGroup_#id">
+                                                <a class="dropdown-item" href="#">进货</a>
+                                                <a class="dropdown-item" href="#">撤柜</a>
+                                                <a class="dropdown-item" href="#">删除</a>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn btn-secondary btn-success">出 售</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td scope="row">2</td>
+                                <td><img src="" width="100px" height="100px" /></td>
+                                <td>T恤</td>
+                                <td>这是一件T恤, 颜色白</td>
+                                <td>99</td>
+                                <td>10</td>
+                                <td>
+
+                                </td>
+                            </tr>
+                            <tr>
+                                <td scope="row">3</td>
+                                <td><img src="" width="100px" height="100px" /></td>
+                                <td>牛仔裤</td>
+                                <td>一条很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长的牛仔裤</td>
+                                <td>149</td>
+                                <td>20</td>
+                                <td>
+
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-5 col-xs-12" id="main">
+    <div class="row clearfix">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-header">
+                    货物列表
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title">截止yyyy-mm-dd, 现有整体货物%d件, 本日售出%d件, 本月售出%d件</h3>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
