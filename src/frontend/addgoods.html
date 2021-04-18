@@ -9,7 +9,7 @@
     <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body style="background-color: #E0E0E0">
-<nav class="navbar navbar-expand-lg navbar-fixed-top navbar-light bg-light">
+<nav class="navbar navbar-expand-lg sticky-top navbar-light bg-light">
     <!--<nav class="navbar navbar-inverse navbar-fixed-top">-->
     <a class="navbar-brand" href="#">Goods Manager</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -62,47 +62,50 @@
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item">
                         <form>
-                            <div class="form-group row">
-                                <label for="goods_id" class="col-sm-2 col-xs-12 col-form-label">ID</label>
+                            <div class="form-group row d-none">
+                                <label for="goods_id" class="col-sm-2 d-none d-sm-block col-xs-12 col-form-label text-right">ID</label>
+                                <label for="goods_id" class="col-sm-2 d-sm-none col-xs-12 col-form-label">ID</label>
                                 <div class="col-sm-10 col-xs-12">
                                     <input type="text" readonly class="form-control-plaintext" id="goods_id" value="新增货品">
                                 </div>
                             </div>
                             <div class="form-group row">
-                                <label for="name" class="col-sm-2 col-xs-12 col-form-label col-form-label-lg">货品名称:</label>
+                                <label for="name" class="col-sm-2 d-none d-sm-block col-form-label col-form-label-lg text-right"><span class="badge badge-danger">必填</span>货品名称:</label>
+                                <label for="name" class="col-sm-2 d-sm-none col-form-label col-form-label-lg">货品名称:<span class="badge badge-danger float-right">必填</span></label>
                                 <div class="col-sm-10 col-xs-12">
-                                    <input type="text" class="form-control form-control-lg" id="name" name="name" placeholder="请填写一个简短的货品名称, 15字以内, 所有相同货品名称以此为准" required>
-                                </div>
-                                <div class="col-sm-12">
-                                    <small class="form-text text-muted float-right">货品名称: 必填, 请填写货品名称</small>
+                                    <input type="text" class="form-control form-control-lg" id="name" name="name" placeholder="简短的货品名称, 15字以内, 所有相同货品名称以此为准" required>
                                 </div>
                             </div>
                             <div class="form-group row">
-                                <label for="desc" class="col-sm-2 col-xs-12 col-form-label">货品描述:</label>
+                                <label for="desc" class="col-sm-2 d-none d-sm-block col-xs-12 col-form-label text-right">货品描述:</label>
+                                <label for="desc" class="col-sm-2 d-sm-none col-xs-12 col-form-label">货品描述:</label>
                                 <div class="col-sm-10 col-xs-12">
-                                    <textarea rows="3" class="form-control" id="desc" placeholder="请填写货品的描述, 对货品具体的批次, 样式等进行描述, 500字以内, 如库中已有相应物品, 则该描述被已存在的覆盖"></textarea>
+                                    <textarea rows="3" class="form-control" id="desc" placeholder="货品的描述, 对货品具体的批次, 样式等进行描述, 500字以内, 如库中已有相应物品, 则该描述被已存在的覆盖"></textarea>
                                 </div>
                             </div>
                             <div class="form-group row">
-                                <label for="price" class="col-sm-2 col-xs-12 col-form-label">单价:</label>
+                                <label for="price" class="col-sm-2 d-none d-sm-block col-xs-12 col-form-label text-right"><span class="badge badge-danger">必填</span>单价:</label>
+                                <label for="price" class="col-sm-2 d-sm-none col-xs-12 col-form-label">单价:<span class="badge badge-danger float-right">必填</span></label>
                                 <div class="col-sm-10 col-xs-12">
-                                    <input type="text" class="form-control" id="price" name="name" placeholder="填写物品定价" required>
+                                    <input type="number" class="form-control" id="price" name="name" placeholder="填写物品定价" required>
                                 </div>
                                 <div class="col-sm-12">
                                     <small class="form-text text-muted float-right">单价: 必填, 请填写货品单价, 数字, 精确到小数点2位</small>
                                 </div>
                             </div>
                             <div class="form-group row">
-                                <label for="price" class="col-sm-2 col-xs-12 col-form-label">库存:</label>
+                                <label for="quantity" class="col-sm-2 d-none d-sm-block col-xs-12 col-form-label text-right"><span class="badge badge-danger">必填</span>库存:</label>
+                                <label for="quantity" class="col-sm-2 d-sm-none col-xs-12 col-form-label">库存:<span class="badge badge-danger float-right">必填</span></label>
                                 <div class="col-sm-10 col-xs-12">
-                                    <input type="text" class="form-control" id="price" name="name" placeholder="填写现行库存" required>
+                                    <input type="number" class="form-control" id="quantity" name="name" placeholder="填写现行库存" required>
                                 </div>
                                 <div class="col-sm-12">
                                     <small class="form-text text-muted float-right">库存: 必填, 请填写库存, 整数</small>
                                 </div>
                             </div>
                             <div class="form-group row">
-                                <label class="col-sm-2 col-xs-12 col-form-label" for="image">上传照片</label>
+                                <label class="col-sm-2 d-none d-sm-block col-xs-12 col-form-label text-right" for="image">上传照片</label>
+                                <label class="col-sm-2 d-sm-none col-xs-12 col-form-label" for="image">上传照片</label>
                                 <div class="col-sm-10 col-xs-12">
                                     <input type="file" class="form-control-file" id="image" required>
                                 </div>
@@ -145,7 +148,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">添加成功</h5>
+                <h5 class="modal-title">添加成功</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -166,7 +169,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="exampleModalLabel">添加失败</h5>
+                <h5 class="modal-title">添加失败</h5>
                 <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>

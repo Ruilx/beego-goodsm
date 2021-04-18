@@ -7,10 +7,21 @@
     <meta http-equiv="Cache-Control" content="no-transform">
     <meta http-equiv="Cache-Control" content="no-siteapp">
     <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .ctrl-box {
+            min-width: 115px
+        }
+        .desc-box {
+            height: 72px;
+            overflow-y: auto;
+        }
+        .price {
+            color: #F30;
+        }
+    </style>
 </head>
 <body style="background-color: #E0E0E0">
-<nav class="navbar navbar-expand-lg navbar-fixed-top navbar-light bg-light">
-    <!--<nav class="navbar navbar-inverse navbar-fixed-top">-->
+<nav class="navbar navbar-expand-lg sticky-top navbar-light bg-light">
     <a class="navbar-brand" href="#">Goods Manager</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -43,8 +54,8 @@
             </li>
         </ul>
         <form class="form-inline my-2 my-lg-0">
-            <input class="form-control mr-sm-2" type="search" placeholder="查询货物" aria-label="查询">
-            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">搜索名称</button>
+            <input class="form-control mr-sm-2" type="search" placeholder="查询货品名称">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">搜索</button>
         </form>
     </div>
 </nav>
@@ -62,7 +73,7 @@
     </div>
 </div>
 
-<div class="container mt-5 col-xs-12" id="main">
+<div class="container mt-5 col-xs-12" id="main" style="display: none;">
     <div class="row clearfix">
         <div class="col">
             <div class="card mb-3">
@@ -70,70 +81,71 @@
                     货物列表
                 </div>
                 <div class="card-body">
-                    <h3 class="card-title">截止yyyy-mm-dd, 现有整体货物%d件, 本日售出%d件, 本月售出%d件</h3>
-                </div>
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item">
-                        <table class="table table-striped table-hover table-responsive">
-                            <thead>
-                            <tr>
-                                <th scope="col">ID</th>
-                                <th scope="col">缩略图</th>
-                                <th scope="col">名称</th>
-                                <th scope="col">描述</th>
-                                <th scope="col">单价</th>
-                                <th scope="col">库存</th>
-                                <th scope="col">操作</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr>
-                                <td scope="row">1</td>
-                                <td><img src="" width="100px" height="100px" /></td>
-                                <td>风衣</td>
-                                <td>这是一件风衣</td>
-                                <td>150</td>
-                                <td>5</td>
-                                <td>
-                                    <div class="btn-group btn-group-sm" role="group" aria-label="Button group with nested dropdown">
-                                        <div class="btn-group" role="group">
-                                            <button id="btnGroupDropAdvanceGroup_#id" type="button" class="btn btn-light dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                操作
-                                            </button>
-                                            <div class="dropdown-menu" aria-labelledby="btnGroupDropAdvanceGroup_#id">
-                                                <a class="dropdown-item" href="#">进货</a>
-                                                <a class="dropdown-item" href="#">撤柜</a>
-                                                <a class="dropdown-item" href="#">删除</a>
-                                            </div>
+                    <div class="alert"><h3 class="card-title">截至yyyy-mm-dd, 现有整体货物%d件, 本日售出%d件, 本月售出%d件</h3></div>
+                    <table class="table table-striped table-hover table-responsive">
+                        <thead>
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">缩略图</th>
+                            <th scope="col">名称</th>
+                            <th scope="col">描述</th>
+                            <th scope="col">单价</th>
+                            <th scope="col">库存</th>
+                            <th scope="col">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td scope="row">1</td>
+                            <td><img src="" width="100px" height="100px" /></td>
+                            <td>风衣</td>
+                            <td>这是一件风衣</td>
+                            <td>150</td>
+                            <td>5</td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Button group with nested dropdown">
+                                    <div class="btn-group" role="group">
+                                        <button id="btnGroupDropAdvanceGroup_#id" type="button" class="btn btn-light dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            操作
+                                        </button>
+                                        <div class="dropdown-menu" aria-labelledby="btnGroupDropAdvanceGroup_#id">
+                                            <a class="dropdown-item" href="#">进货</a>
+                                            <a class="dropdown-item" href="#">撤柜</a>
+                                            <a class="dropdown-item" href="#">删除</a>
                                         </div>
-                                        <button type="button" class="btn btn-secondary btn-success">出 售</button>
                                     </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td scope="row">2</td>
-                                <td><img src="" width="100px" height="100px" /></td>
-                                <td>T恤</td>
-                                <td>这是一件T恤, 颜色白</td>
-                                <td>99</td>
-                                <td>10</td>
-                                <td>
-
-                                </td>
-                            </tr>
-                            <tr>
-                                <td scope="row">3</td>
-                                <td><img src="" width="100px" height="100px" /></td>
-                                <td>牛仔裤</td>
-                                <td>一条很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长的牛仔裤</td>
-                                <td>149</td>
-                                <td>20</td>
-                                <td>
-
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
+                                    <button type="button" class="btn btn-secondary btn-success">出 售</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td scope="row">2</td>
+                            <td><img src="" width="100px" height="100px" /></td>
+                            <td>T恤</td>
+                            <td>这是一件T恤, 颜色白</td>
+                            <td>99</td>
+                            <td>10</td>
+                            <td>
+            
+                            </td>
+                        </tr>
+                        <tr>
+                            <td scope="row">3</td>
+                            <td><img src="" width="100px" height="100px" /></td>
+                            <td>牛仔裤</td>
+                            <td>一条很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长的牛仔裤</td>
+                            <td>149</td>
+                            <td>20</td>
+                            <td>
+            
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                    
                     </li>
                 </ul>
             </div>
@@ -145,23 +157,437 @@
     <div class="row clearfix">
         <div class="col">
             <div class="card mb-3">
-                <div class="card-header">
-                    货物列表
+                <div class="card-header d-flex flex-row">
+                    <div class="row col-auto flex-grow-1">
+                        <span class="align-middle">货品列表</span>
+                    </div>
+                    <div class="col-auto btn-group-toggle" data-toggle="buttons">
+                        <label class="btn btn-light btn-sm">
+                            <input type="checkbox" id="hide_price">隐藏价格
+                        </label>
+                    </div>
                 </div>
                 <div class="card-body">
-                    <h3 class="card-title">截止yyyy-mm-dd, 现有整体货物%d件, 本日售出%d件, 本月售出%d件</h3>
+                    <div class="alert"><h4 class="card-title">截至yyyy-mm-dd, 现有整体货物%d件, 本日售出%d件, 本月售出%d件</h4></div>
+                    <div class="card mb-3">
+                        <div class="row no-gutters">
+                            <div class="col-md-3 d-md-none d-lg-block" style="height: 200px">
+                                <img src="./static/image/pic.png" alt="" style="object-fit: cover; width:100%; height:100%">
+                            </div>
+                            <div class="col-md-12 col-lg-9">
+                                <div class="card-body good_card" data-id="1" data-price="150" data-quantity="100" data-name="风衣">
+                                    <div class="d-flex flex-row">
+                                        <h4 class="card-title mr-2"><small>#1</small></h4>
+                                        <h4 class="card-title flex-grow-1">风衣</h4>
+                                        <h4 class="card-title font-weight-bold price"><small>¥</small>150</h4>
+                                    </div>
+                                    <p class="card-text text-wrap desc-box">这是一件风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣风衣</p>
+                                    <div class="d-flex flex-row">
+                                        <div class="card-text flex-grow-1">
+                                            <small class="text-muted">
+                                                <span class="badge badge-primary">库存: 5</span>
+                                                <span class="badge badge-success">今日售出: 10</span>
+                                                <span class="badge badge-info">本月售出: 10</span>
+                                            </small>
+                                        </div>
+                                        <div class="card-text ctrl-box">
+                                            <div class="btn-group" role="group">
+                                                <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                    操作
+                                                </button>
+                                                <div class="dropdown-menu">
+                                                    <button class="dropdown-item btn-sm" href="#">进货/调货</button>
+                                                    <button class="dropdown-item btn-sm" href="#">撤柜/调出</button>
+                                                    <button class="dropdown-item btn-sm text-dark" href="#">编辑信息</button>
+                                                    <div class="dropdown-divider"></div>
+                                                    <button class="dropdown-item btn-sm text-danger" href="#">删除</button>
+                                                </div>
+                                            </div>
+                                            <button class="btn btn-primary btn-sm good_sell_btn">出售</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    
                 </div>
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item">
-
-                    </li>
-                </ul>
             </div>
         </div>
     </div>
 </div>
+
+<div class="container mt-5 col-xs-12" id="main">
+    <div class="row clearfix">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-header">
+                    测试功能
+                </div>
+                <div class="card-body">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal_for_sale">出售模态框</button>
+                        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#modal_for_import">进货模态框</button>
+                        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#modal_for_export">撤柜模态框</button>
+                        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modal_for_delete">删除模态框</button>
+    
+                        <button type="button" class="btn btn-secondary">其他...</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for selling goods -->
+<div class="modal fade" id="modal_for_sale" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">出售货品</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-row align-items-center d-none">
+                        <div class="col-auto">
+                            <input type="text" readonly class="form-control-plaintext" value="$id" name="id">
+                        </div>
+                    </div>
+                    <div class="form-row align-items-center">
+                        <div class="col-auto">
+                            确认售出
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" readonly class="form-control-plaintext" value="$name" name="name">
+                        </div>
+                    </div>
+                    <div class="form-row align-items-center mt-3">
+                        <div class="col-auto">
+                            数量:
+                        </div>
+                        <div class="col-auto">
+                            <input type="number" class="form-control" value="1" name="quantity" required>
+                        </div>
+                        <div class="col-auto">
+                            当前库存: <span class="text-block inventory">1000</span>
+                        </div>
+                    </div>
+                    <div class="form-row align-items-center mt-3">
+                        <div class="col-auto">
+                            售出单价:
+                        </div>
+                        <div class="col-auto">
+                            <input type="number" class="form-control" value="1" name="price" required>
+                        </div>
+                        <div class="col-auto">
+                            设定单价: <span class="text-block pricing">¥150</span>
+                        </div>
+                    </div>
+                    <div class="form-row align-items-center mt-3">
+                        <div class="col-auto">
+                            总价:
+                        </div>
+                        <div class="col-auto">
+                            <h4 class="total_price font-weight-bold price"><small>¥</small><span class="price_value">0</span></h4>
+                        </div>
+                    </div>
+                    <div class="form-row row mt-3">
+                        <div class="col-sm-12">
+                            <textarea rows="2" class="form-control remark" placeholder="备注信息..."></textarea>
+                        </div>
+                    </div>
+                    <div class="form-row row mt-3 help_text d-none">
+                        <div class="col-auto flex-grow-1 mx-1 alert alert-danger text-monospace small" role="alert"></div>
+                    </div>
+                </form>
+                
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary back" data-dismiss="modal">返回</button>
+                <div class="spinner-border text-secondary d-none" role="status"></div>
+                <button type="button" class="btn btn-success submit">确定</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for importing goods -->
+<div class="modal fade" id="modal_for_import" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">进货</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-row align-items-center d-none">
+                        <div class="col-auto">
+                            <input type="text" readonly class="form-control-plaintext" value="$id" name="id">
+                        </div>
+                    </div>
+                    <div class="form-row align-items-center">
+                        <div class="col-auto">
+                            确认进货
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" readonly class="form-control-plaintext" value="$name" name="name">
+                        </div>
+                    </div>
+                    <div class="form-row align-items-center">
+                        <div class="col-auto">
+                            数量:
+                        </div>
+                        <div class="col-auto">
+                            <input type="number" class="form-control" value="1" name="quantity" required>
+                        </div>
+                        <div class="col-auto">
+                            当前库存: <span class="text-block inventory">1000</span>
+                        </div>
+                    </div>
+                    <div class="form-row row mt-3">
+                        <div class="col-sm-12">
+                            <textarea rows="2" class="form-control" placeholder="备注信息..."></textarea>
+                        </div>
+                    </div>
+                    <div class="form-row row mt-3">
+                        Helper text
+                    </div>
+                </form>
+            
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">返回</button>
+                <button type="button" class="btn btn-success">确定</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for exporting goods -->
+<div class="modal fade" id="modal_for_export" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">撤柜</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-row align-items-center d-none">
+                        <div class="col-auto">
+                            <input type="text" readonly class="form-control-plaintext" value="$id" name="id">
+                        </div>
+                    </div>
+                    <div class="form-row align-items-center">
+                        <div class="col-auto">
+                            确认撤柜
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" readonly class="form-control-plaintext" value="$name" name="name">
+                        </div>
+                    </div>
+                    <div class="form-row align-items-center">
+                        <div class="col-auto">
+                            数量:
+                        </div>
+                        <div class="col-auto">
+                            <input type="number" class="form-control" value="1" name="quantity" required>
+                        </div>
+                        <div class="col-auto">
+                            当前库存: <span class="text-block">1000</span>
+                        </div>
+                    </div>
+                    <div class="form-row row mt-3">
+                        <div class="col-sm-12">
+                            <textarea rows="2" class="form-control" placeholder="备注信息..."></textarea>
+                        </div>
+                    </div>
+                    <div class="form-row row mt-3">
+                        Helper text
+                    </div>
+                </form>
+            
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">返回</button>
+                <button type="button" class="btn btn-success">确定</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for delete goods -->
+<div class="modal fade" id="modal_for_delete" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">删除货品</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-row align-items-center d-none">
+                        <div class="col-auto">
+                            <input type="text" readonly class="form-control-plaintext" value="$id" name="id">
+                        </div>
+                    </div>
+                    <div class="form-row align-items-center">
+                        <div class="col-auto">
+                            确认删除
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" readonly class="form-control-plaintext" value="$name" name="name">
+                        </div>
+                    </div>
+                    <div class="form-row row mt-3">
+                        <div class="col-sm-12">
+                            <textarea rows="2" class="form-control" placeholder="备注信息..." required></textarea>
+                        </div>
+                    </div>
+                    <div class="form-row row mt-3">
+                        点击确认后, 该货品将会被永久删除, 并不能再执行售卖等操作, 请再次确定该货品现在的实际状态和必要性, 然后确定该操作!
+                    </div>
+                    <div class="form-row row mt-3">
+                        Helper text
+                    </div>
+                </form>
+            
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">返回</button>
+                <button type="button" class="btn btn-danger">确定</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.bundle.min.js"></script>
+<script src="static/js/helper.js"></script>
+<script type="text/javascript">
+    "use strict";
+    $(function(){
+        let price_quantity_change = function(){
+            let good_sell_modal = $("#modal_for_sale"),
+                    price = good_sell_modal.find("input[name=price]").val(),
+                    quantity = good_sell_modal.find("input[name=quantity]").val(),
+                    total_price_jd = good_sell_modal.find(".total_price .price_value");
+            if(parseInt(quantity) == quantity && parseFloat(price) == price){
+                total_price_jd.html((parseFloat(price) * parseInt(quantity)).toFixed(2));
+            }else{
+                total_price_jd.html("0");
+            }
+        },
+            _ = function(){
+                let good_sell_modal = $("#modal_for_sale");
+                good_sell_modal.find("input[name=price]").change(price_quantity_change);
+                good_sell_modal.find("input[name=quantity]").change(price_quantity_change);
+            }();
+        $("#hide_price").click(function(){
+            if($(this)[0].checked){
+                $(".price").fadeOut()
+            }else{
+                $(".price").fadeIn()
+            }
+        });
+        $(".good_sell_btn").click(function(){
+            let good_card = $(this).parents(".good_card"),
+                    good_id = good_card.data("id"),
+                    good_name = good_card.data("name"),
+                    good_price = good_card.data("price"),
+                    good_quantity = good_card.data("quantity"),
+                    good_sell_modal = $("#modal_for_sale"),
+                    set_good_modal_info = function(modal_jd, id, name, price, quantity, sell_quantity="1"){
+                        modal_jd.find("input[name=id]").val(id);
+                        modal_jd.find("input[name=name]").val(name);
+                        modal_jd.find(".inventory").html(quantity);
+                        modal_jd.find("input[name=price]").val(price);
+                        modal_jd.find(".pricing").html(price);
+                        if(parseInt(sell_quantity) == sell_quantity && parseFloat(price) == price) {
+                            modal_jd.find(".total_price .price_value").html((parseFloat(price) * parseInt(sell_quantity)).toFixed(2))
+                        }
+                    };
+            set_good_modal_info(good_sell_modal, good_id, good_name, good_price, good_quantity);
+            alert_msg(good_sell_modal, "");
+            good_sell_modal.modal({
+                backdrop: "static",
+                focus: true,
+                show: true
+            });
+        });
+        $("#modal_for_sale .modal-footer button.submit").click(function(){
+            let good_sell_modal = $("#modal_for_sale"),
+                    good_id = good_sell_modal.find("input[name=id]").val(),
+                    good_quantity = good_sell_modal.find("input[name=quantity]").val(),
+                    good_inventory = good_sell_modal.find(".inventory").html(),
+                    good_price = good_sell_modal.find("input[name=price]").val(),
+                    good_remark = good_sell_modal.find("[name=remark]").val(),
+                    good_unit_price = good_sell_modal.find(".pricing").html(),
+                    req_param = {
+                        id: good_id,
+                        quantity: good_quantity,
+                        price: good_price,
+                        remark: good_remark,
+                        unit_price: good_unit_price,
+                        op: "sell",
+                    };
+            if(good_id === ""){
+                alert_msg(good_sell_modal, "本对话框展示无效, 没有设定ID.");
+                return;
+            }
+            if(parseInt(good_quantity) != good_quantity || parseInt(good_quantity) <= 0){
+                alert_msg(good_sell_modal, "请确认售出数量.");
+                return;
+            }
+            if(parseFloat(good_price) != good_price || parseFloat(good_price) < 0){
+                alert_msg(good_sell_modal, "请确认出售价格.");
+                return;
+            }
+            if(parseFloat(good_price) === 0 && good_sell_modal.data("free_sell") !== "1"){
+                alert_msg(good_sell_modal, "请确认是否免费出售, 若确为免费出售, 请再次点击确定收货, 将免费售出此物品.");
+                good_sell_modal.data("free_sell", "1");
+                return;
+            }
+            if(good_quantity > good_inventory && good_sell_modal.data("confirm") !== "1"){
+                alert_msg(good_sell_modal, "售卖数量大于存货数量, 请确认库存数量是否正确, 若确认正确, 请再次点击确认确定售货.");
+                good_sell_modal.data("confirm", "1");
+                return;
+            }
+            set_enable(good_sell_modal, false);
+            let ajax_handle = ajax_gen("/api", req_param, function(data, textStatus, jqXHR){
+                if(typeof(textStatus) === "string" && textStatus === "success"){
+                    if(typeof(data) == "object" && data.status === 0){
+                        let data = data.data;
+                        if(data === "success"){
+                            good_sell_modal.modal("hide");
+                            location.reload();
+                            return
+                        }else{
+                            alert_msg(good_sell_modal, "服务器未正常返回回执, 请联系管理员.<br> " + data);
+                        }
+                    }else{
+                        alert_msg(good_sell_modal, "服务器未正常返回回执, 请联系管理员.<br> " + data);
+                    }
+                }else{
+                    alert_msg(good_sell_modal, "本地执行器无法解析返回内容, 请联系管理员.<br>" + data);
+                }
+                set_enable(good_sell_modal, true);
+            }, ajax_failed_handler, good_sell_modal[0])
+        })
+    })
+    
+</script>
 </body>
 </html>
