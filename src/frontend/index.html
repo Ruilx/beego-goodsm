@@ -340,7 +340,7 @@
                             <input type="text" readonly class="form-control-plaintext" value="$name" name="name">
                         </div>
                     </div>
-                    <div class="form-row align-items-center">
+                    <div class="form-row align-items-center mt-3">
                         <div class="col-auto">
                             数量:
                         </div>
@@ -415,20 +415,29 @@
                             当前库存: <span class="text-block">1000</span>
                         </div>
                     </div>
+                    <div class="form-row align-items-center mt-3">
+                        <div class="col-auto">
+                            撤柜后库存:
+                        </div>
+                        <div class="col-auto">
+                            <h4 class="total_price font-weight-bold after_quantity">0</h4>
+                        </div>
+                    </div>
                     <div class="form-row row mt-3">
                         <div class="col-sm-12">
                             <textarea rows="2" class="form-control" placeholder="备注信息..."></textarea>
                         </div>
                     </div>
-                    <div class="form-row row mt-3">
-                        Helper text
+                    <div class="form-row row mt-3 help_text d-none">
+                        <div class="col-auto flex-grow-1 mx-1 alert alert-danger text-monospace small" role="alert"></div>
                     </div>
                 </form>
             
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">返回</button>
-                <button type="button" class="btn btn-success">确定</button>
+                <div class="spinner-border text-secondary d-none" role="status"></div>
+                <button type="button" class="btn btn-success submit">确定</button>
             </div>
         </div>
     </div>
@@ -488,22 +497,42 @@
 <script type="text/javascript">
     "use strict";
     $(function(){
-        let price_quantity_change = function(){
-            let good_sell_modal = $("#modal_for_sale"),
-                    price = good_sell_modal.find("input[name=price]").val(),
-                    quantity = good_sell_modal.find("input[name=quantity]").val(),
-                    total_price_jd = good_sell_modal.find(".total_price .price_value");
-            if(parseInt(quantity) == quantity && parseFloat(price) == price){
-                total_price_jd.html((parseFloat(price) * parseInt(quantity)).toFixed(2));
-            }else{
-                total_price_jd.html("0");
-            }
-        },
-            _ = function(){
-                let good_sell_modal = $("#modal_for_sale");
-                good_sell_modal.find("input[name=price]").change(price_quantity_change);
-                good_sell_modal.find("input[name=quantity]").change(price_quantity_change);
-            }();
+        let
+                price_quantity_change = function(){
+                    let good_sell_modal = $("#modal_for_sale"),
+                            price = good_sell_modal.find("input[name=price]").val(),
+                            quantity = good_sell_modal.find("input[name=quantity]").val(),
+                            total_price_jd = good_sell_modal.find(".total_price .price_value");
+                    if(parseInt(quantity) == quantity && parseFloat(price) == price){
+                        total_price_jd.html((parseFloat(price) * parseInt(quantity)).toFixed(2));
+                    }else{
+                        total_price_jd.html("0");
+                    }
+                },
+                inventory_change = function(){
+                    let good_import_modal = $("#modal_for_import"),
+                            quantity = good_import_modal.find("input[name=quantity]").val(),
+                            inventory = good_import_modal.find(".inventory").html(),
+                            after_inventory = good_import_modal.find(".after_quantity"),
+                            inventory_int = parseInt(inventory),
+                            quantity_int = parseInt(quantity);
+                    if(inventory == inventory_int && quantity == quantity_int){
+                        if(inventory_int + quantity_int <= inventory_int){
+                            after_inventory.html("进货数量需大于零");
+                        }
+                        after_inventory.html(inventory_int + quantity_int);
+                    }else{
+                        after_inventory.html("请输入正确的进货数量")
+                    }
+                },
+                
+                _ = function(){
+                    let good_sell_modal = $("#modal_for_sale");
+                    good_sell_modal.find("input[name=price]").change(price_quantity_change);
+                    good_sell_modal.find("input[name=quantity]").change(price_quantity_change);
+                    let good_import_modal = $("#modal_for_import");
+                    good_import_modal.find("input[name=quantity]").change(inventory_change);
+                }();
         $("#hide_price").click(function(){
             if($(this)[0].checked){
                 $(".price").fadeOut()
@@ -538,10 +567,63 @@
             let good_card = $(this).parents(".good_card"),
                     good_id = good_card.data("id"),
                     good_name = good_card.data("name"),
-                    good_price = good_card.data("price"),
                     good_quantity = good_card.data("quantity"),
                     good_import_modal = $("#modal_for_import"),
-                    set_good_modal_info = function(modal_jd, id, name, quantity)
+                    set_good_modal_info = function(modal_jd, id, name, quantity){
+                        modal_jd.find("input[name=id]").val(id);
+                        modal_jd.find("input[name=name]").val(name);
+                        modal_jd.find(".inventory").html(quantity);
+                        inventory_change();
+                    };
+            set_good_modal_info(good_import_modal, good_id, good_name, good_quantity);
+            alert_msg(good_import_modal, "");
+            good_import_modal.modal({
+                backdrop: "static",
+                focus: true,
+                show: true
+            });
+        });
+        $("#modal_for_import .modal-footer button.submit").click(function(){
+            let good_import_modal = $("#modal_for_import"),
+                    good_id = good_import_modal.find("input[name=id]").val(),
+                    good_quantity = good_import_modal.find("input[name=quantity]").val(),
+                    good_inventory = good_import_modal.find(".inventory").html(),
+                    good_remark = good_import_modal.find("textarea[name=remark]").val(),
+                    req_param = {
+                        id: good_id,
+                        quantity: good_quantity,
+                        remark: good_remark,
+                        op: "import",
+                    };
+            if(good_id === ""){
+                alert_msg(good_import_modal, "本对话框展示无效, 没有设定ID.");
+                return;
+            }
+            if(parseInt(good_quantity) != good_quantity || parseInt(good_quantity) <= 0){
+                alert_msg(good_sell_modal, "请确认售出数量.");
+                return;
+            }
+            inventory_change();
+            set_enable(good_import_modal, false);
+            let ajax_handle = ajax_gen("/api", req_param, function(data, textStatus, jqXHR){
+                if(typeof(textStatus) === "string" && textStatus === "success"){
+                    if(typeof(data) == "object" && data.status === 0){
+                        let data = data.data;
+                        if(data === "success"){
+                            good_import_modal.modal("hide");
+                            location.reload();
+                            return;
+                        }else{
+                            alert_msg(good_import_modal, "服务器未正常返回回执, 请联系管理员.<br>" + data);
+                        }
+                    }else{
+                        alert_msg(good_import_modal, "服务器未正常返回回执, 请联系管理员.<br>" + data);
+                    }
+                }else{
+                    alert_msg(good_import_modal, "本地执行器无法解析返回内容, 请联系管理员.<br>" + data);
+                }
+                set_enable(good_import_modal, true);
+            }, ajax_failed_handler, good_import_modal[0]);
         });
         $("#modal_for_sale .modal-footer button.submit").click(function(){
             let good_sell_modal = $("#modal_for_sale"),
@@ -549,7 +631,7 @@
                     good_quantity = good_sell_modal.find("input[name=quantity]").val(),
                     good_inventory = good_sell_modal.find(".inventory").html(),
                     good_price = good_sell_modal.find("input[name=price]").val(),
-                    good_remark = good_sell_modal.find("[name=remark]").val(),
+                    good_remark = good_sell_modal.find("textarea[name=remark]").val(),
                     good_unit_price = good_sell_modal.find(".pricing").html(),
                     req_param = {
                         id: good_id,
@@ -590,21 +672,19 @@
                         if(data === "success"){
                             good_sell_modal.modal("hide");
                             location.reload();
-                            return
+                            return;
                         }else{
-                            alert_msg(good_sell_modal, "服务器未正常返回回执, 请联系管理员.<br> " + data);
+                            alert_msg(good_sell_modal, "服务器未正常返回回执, 请联系管理员.<br>" + data);
                         }
                     }else{
-                        alert_msg(good_sell_modal, "服务器未正常返回回执, 请联系管理员.<br> " + data);
+                        alert_msg(good_sell_modal, "服务器未正常返回回执, 请联系管理员.<br>" + data);
                     }
                 }else{
                     alert_msg(good_sell_modal, "本地执行器无法解析返回内容, 请联系管理员.<br>" + data);
                 }
                 set_enable(good_sell_modal, true);
-            }, ajax_failed_handler, good_sell_modal[0])
+            }, ajax_failed_handler, good_sell_modal[0]);
         });
-        
-        
     })
     
 </script>
