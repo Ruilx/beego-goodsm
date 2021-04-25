@@ -1,11 +1,33 @@
 "use strict";
-function ajax_gen(url, data, success, error, context=this, method="post"){
+function ajax_gen(url, data1, success, error, logical_failed = undefined, context=this, method="post"){
 	return $.ajax({
 		url: url,
 		async: true,
-		data: data,
+		data: data1,
 		dataType: "json",
-		success: success,
+		success: function(ret_data, textStatus, jqXHR){
+			let ret = undefined;
+			if(typeof(textStatus) === "string" && textStatus === "success"){
+				if(typeof(ret_data) == "object" && ret_data.status === 0){
+					if(typeof(success) == "function"){
+						ret = success(ret_data, textStatus, jqXHR);
+					}else{
+						alert_msg($(this), "参数错误: success需为function");
+						if(typeof(logical_failed) === "function") logical_failed();
+					}
+				}else{
+					alert_msg($(this), "服务器未正常返回回执, 请联系管理员.<br>" + get_string(ret_data));
+					if(typeof(logical_failed) === "function") logical_failed();
+				}
+			}else{
+				alert_msg($(this), "本地执行器无法解析返回内容, 请联系管理员.<br>" + get_string(ret_data));
+				if(typeof(logical_failed) === "function") logical_failed();
+			}
+			if(typeof(ret) === "function"){
+				return ret();
+			}
+			return ret;
+		},
 		error: error,
 		type: method,
 		timeout: 5000,

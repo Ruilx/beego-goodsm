@@ -605,25 +605,19 @@
             }
             inventory_change();
             set_enable(good_import_modal, false);
-            let ajax_handle = ajax_gen("/api", req_param, function(data, textStatus, jqXHR){
-                if(typeof(textStatus) === "string" && textStatus === "success"){
-                    if(typeof(data) == "object" && data.status === 0){
-                        let data = data.data;
-                        if(data === "success"){
-                            good_import_modal.modal("hide");
-                            location.reload();
-                            return;
-                        }else{
-                            alert_msg(good_import_modal, "服务器未正常返回回执, 请联系管理员.<br>" + data);
-                        }
-                    }else{
-                        alert_msg(good_import_modal, "服务器未正常返回回执, 请联系管理员.<br>" + data);
-                    }
+            let ajax_handle = ajax_gen("/api", req_param, function(res_data, textStatus, jqXHR){
+                let data = res_data.data;
+                if(data === "success"){
+                    good_import_modal.modal("hide");
+                    location.reload();
+                    return;
                 }else{
-                    alert_msg(good_import_modal, "本地执行器无法解析返回内容, 请联系管理员.<br>" + data);
+                    alert_msg(good_import_modal, "服务器未正常返回回执, 请联系管理员.<br>" + get_string(res_data));
                 }
                 set_enable(good_import_modal, true);
-            }, ajax_failed_handler, good_import_modal[0]);
+            }, ajax_failed_handler, function(){
+                set_enable(good_import_modal, true);
+            }, good_import_modal[0]);
         });
         $("#modal_for_sale .modal-footer button.submit").click(function(){
             let good_sell_modal = $("#modal_for_sale"),
@@ -665,25 +659,19 @@
             }
             price_quantity_change();
             set_enable(good_sell_modal, false);
-            let ajax_handle = ajax_gen("/api", req_param, function(data, textStatus, jqXHR){
-                if(typeof(textStatus) === "string" && textStatus === "success"){
-                    if(typeof(data) == "object" && data.status === 0){
-                        let data = data.data;
-                        if(data === "success"){
-                            good_sell_modal.modal("hide");
-                            location.reload();
-                            return;
-                        }else{
-                            alert_msg(good_sell_modal, "服务器未正常返回回执, 请联系管理员.<br>" + data);
-                        }
-                    }else{
-                        alert_msg(good_sell_modal, "服务器未正常返回回执, 请联系管理员.<br>" + data);
-                    }
+            let ajax_handle = ajax_gen("/api", req_param, function(res_data, textStatus, jqXHR){
+                let data = res_data.data;
+                if(data === "success"){
+                    good_sell_modal.modal("hide");
+                    location.reload();
+                    return;
                 }else{
-                    alert_msg(good_sell_modal, "本地执行器无法解析返回内容, 请联系管理员.<br>" + data);
+                    alert_msg(good_sell_modal, "服务器未正常返回回执, 请联系管理员.<br>" + get_string(res_data));
                 }
                 set_enable(good_sell_modal, true);
-            }, ajax_failed_handler, good_sell_modal[0]);
+            }, ajax_failed_handler, function(){
+                set_enable(good_sell_modal, true);
+            }, good_sell_modal[0]);
         });
     })
     
