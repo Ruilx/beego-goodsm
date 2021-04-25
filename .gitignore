@@ -1,0 +1,11 @@
+# Git ignore file
+
+.idea/
+bin/*
+pkg/*
+
+*.tmp
+*.db
+goodsm.db
+go.sum
+*.bak
