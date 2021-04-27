@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/beego/beego/v2/server/web"
 	_ "github.com/mattn/go-sqlite3"
@@ -9,7 +10,7 @@ import (
 	"strings"
 )
 
-const DBNAME = "main"
+const DBNAME = "default"
 
 //type Good struct {
 //	Id int32 `orm:"column:id;type:int;AUTO_INCREMENT;not null"`
@@ -55,9 +56,10 @@ func init(){
 		err error
 	)
 
-	if dbPath, err = web.AppConfig.String("dbPath"); err != nil{
+	if dbPath, err = web.AppConfig.String("db_path"); err != nil{
 		panic("Cannot find 'dbPath' in app config: " + err.Error())
 	}
+	fmt.Println("DBPATH: " + dbPath)
 
 	if err = orm.RegisterDriver("sqlite3", orm.DRSqlite); err != nil {
 		panic("Cannot register sqlite3 for model: " + err.Error())
@@ -74,6 +76,7 @@ func init(){
 
 
 func AddGoods(goods *Good)(id int64, err error){
+	fmt.Println("Good: ", goods)
 	ormHandle := orm.NewOrmUsingDB(DBNAME)
 	id, err = ormHandle.Insert(goods)
 	return
