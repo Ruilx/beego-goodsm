@@ -96,11 +96,14 @@ func (c *MainController) AddGood(){
 	}
 	if intQuantity, err = strconv.ParseInt(quantity, 10, 64); err != nil {
 		c.AjaxSetResult(400, "Expect an int type 'quantity', but parse failed: " + err.Error())
+		return
 	}
 	good := models.Good{Name: name, Desc: desc, Price: floatPrice, Quantity: intQuantity}
 	if id, err = models.AddGoods(&good); err != nil {
 		c.AjaxSetResult(501, "Cannot insert a good to database, system error: " + err.Error())
+		return
 	}
+	fmt.Println("con: ", id, err == nil)
 	c.res.Data["id"] = id
 	c.AjaxSetResult(200, "Success")
 }

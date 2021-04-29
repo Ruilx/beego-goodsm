@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"reflect"
 	"strings"
+	"time"
 )
 
 const DBNAME = "default"
@@ -34,7 +35,7 @@ CREATE TABLE "main"."NewTable" (
 );
 CREATE INDEX "main"."name_i"
 ON "goods" ("name" ASC);
- */
+*/
 
 const (
 	ORDERBY_UNKNOWN = 0
@@ -43,20 +44,26 @@ const (
 )
 
 type Good struct {
-	Id int32
-	Name string `orm:"size(32)"`
-	Desc string
-	Price float64
-	Quantity int64
+	Id       int32   `orm:"column(id); auto; pk"`
+	Name     string  `orm:"column(name); size(32); unique"`
+	Desc     string  `orm:"column(desc); type(text); null"`
+	Price    float64 `orm:"column(price); default(0)"`
+	Quantity int64   `orm:"column(quantity); default(0)"`
+	Deleted  bool    `orm:"column(deleted); default(0)"`
+	CreateTime time.Time `orm:"column(create_time); auto_now_add; type(datetime)"`
+	UpdateTime time.Time `orm:"column(update_time); auto_now; type(datetime)"`
+	DeleteTime time.Time `orm:"column(delete_time); type(datetime); null; default(null)"`
 }
 
-func init(){
+func init() {
 	var (
 		dbPath string
-		err error
+		err    error
 	)
 
-	if dbPath, err = web.AppConfig.String("db_path"); err != nil{
+	orm.Debug = true
+
+	if dbPath, err = web.AppConfig.String("db_path"); err != nil {
 		panic("Cannot find 'dbPath' in app config: " + err.Error())
 	}
 	fmt.Println("DBPATH: " + dbPath)
@@ -65,33 +72,41 @@ func init(){
 		panic("Cannot register sqlite3 for model: " + err.Error())
 	}
 
-	if err = orm.RegisterDataBase(DBNAME, "sqlite3", dbPath); err != nil{
+	if err = orm.RegisterDataBase(DBNAME, "sqlite3", dbPath); err != nil {
 		panic("Cannot register database " + DBNAME + " for sqlite3: " + err.Error())
 	}
 	orm.RegisterModel(new(Good))
-	//if err = orm.RunSyncdb(DBNAME, false, true); err != nil {
-	//	panic("Run sync db failed, error: " + err.Error())
-	//}
+	if err = orm.RunSyncdb(DBNAME, false, true); err != nil {
+		panic("Run sync db failed, error: " + err.Error())
+	}
 }
 
-
-func AddGoods(goods *Good)(id int64, err error){
+func AddGoods(goods *Good) (id int64, err error) {
 	fmt.Println("Good: ", goods)
 	ormHandle := orm.NewOrmUsingDB(DBNAME)
 	id, err = ormHandle.Insert(goods)
 	return
 }
 
-func GetGoodsById(id int32)(res *Good, err error){
-	ormHandle := orm.NewOrm()
+func GetGoodsById(id int32) (res *Good, err error) {
+	ormHandle := orm.NewOrmUsingDB(DBNAME)
 	result := &Good{Id: id}
-	if err = ormHandle.QueryTable(new(Good)).Filter("Id", id).RelatedSel().One(result); err != nil{
+	if err = ormHandle.QueryTable(&Good{}).Filter("Id", id).RelatedSel().One(result); err != nil {
 		return nil, err
 	}
 	return result, err
 }
 
-func GetGoods(query map[string]string, fields []string, sortBy []string, order []int, offset int64, limit int64)(ml []interface{}, err error){
+func GetGoodsByName(name string) (res *Good, err error){
+	ormHandle := orm.NewOrmUsingDB(DBNAME)
+	result := &Good{Name: name}
+	if err = ormHandle.QueryTable(&Good{}).Filter("Name", name).RelatedSel().One(result); err != nil {
+		return nil, err
+	}
+	return result, err
+}
+
+func GetGoods(query map[string]string, fields []string, sortBy []string, order []int, offset int64, limit int64) (ml []interface{}, err error) {
 	ormHandle := orm.NewOrm()
 	queryCond := ormHandle.QueryTable(new(Good))
 
@@ -156,7 +171,7 @@ func GetGoods(query map[string]string, fields []string, sortBy []string, order [
 	return ml, nil
 }
 
-func UpdateGoodsById(good *Good)(id int64, err error){
+func UpdateGoodsById(good *Good) (id int64, err error) {
 	ormHandle := orm.NewOrm()
 	idReady := Good{Id: good.Id}
 	if err = ormHandle.Read(&idReady); err != nil {
@@ -167,10 +182,10 @@ func UpdateGoodsById(good *Good)(id int64, err error){
 	return
 }
 
-func DeleteGoodsById(id int32)(ok bool, err error){
+func DeleteGoodsById(id int32) (ok bool, err error) {
 	ormHandle := orm.NewOrm()
 	good := Good{Id: id}
-	if err = ormHandle.Read(&good); err == nil{
+	if err = ormHandle.Read(&good); err == nil {
 		return false, err
 	}
 	return true, err
