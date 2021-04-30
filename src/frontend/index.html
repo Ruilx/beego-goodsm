@@ -197,10 +197,10 @@
                                                 </button>
                                                 <div class="dropdown-menu">
                                                     <button class="dropdown-item btn-sm good_import_btn" href="#">进货/调货</button>
-                                                    <button class="dropdown-item btn-sm" href="#">撤柜/调出</button>
+                                                    <button class="dropdown-item btn-sm good_export_btn" href="#">撤柜/调出</button>
                                                     <button class="dropdown-item btn-sm text-dark" href="#">编辑信息</button>
                                                     <div class="dropdown-divider"></div>
-                                                    <button class="dropdown-item btn-sm text-danger" href="#">删除</button>
+                                                    <button class="dropdown-item btn-sm text-danger good_remove_btn" href="#">删除</button>
                                                 </div>
                                             </div>
                                             <button class="btn btn-primary btn-sm good_sell_btn">出售</button>
@@ -230,7 +230,7 @@
                         <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal_for_sale">出售模态框</button>
                         <button type="button" class="btn btn-default" data-toggle="modal" data-target="#modal_for_import">进货模态框</button>
                         <button type="button" class="btn btn-default" data-toggle="modal" data-target="#modal_for_export">撤柜模态框</button>
-                        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modal_for_delete">删除模态框</button>
+                        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modal_for_remove">删除模态框</button>
     
                         <button type="button" class="btn btn-secondary">其他...</button>
                     </div>
@@ -412,7 +412,7 @@
                             <input type="number" class="form-control" value="1" name="quantity" required>
                         </div>
                         <div class="col-auto">
-                            当前库存: <span class="text-block">1000</span>
+                            当前库存: <span class="text-block inventory">1000</span>
                         </div>
                     </div>
                     <div class="form-row align-items-center mt-3">
@@ -435,7 +435,7 @@
             
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">返回</button>
+                <button type="button" class="btn btn-secondary back" data-dismiss="modal">返回</button>
                 <div class="spinner-border text-secondary d-none" role="status"></div>
                 <button type="button" class="btn btn-success submit">确定</button>
             </div>
@@ -443,8 +443,8 @@
     </div>
 </div>
 
-<!-- Modal for delete goods -->
-<div class="modal fade" id="modal_for_delete" tabindex="-1">
+<!-- Modal for remove goods -->
+<div class="modal fade" id="modal_for_remove" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
@@ -470,21 +470,22 @@
                     </div>
                     <div class="form-row row mt-3">
                         <div class="col-sm-12">
-                            <textarea rows="2" class="form-control" placeholder="备注信息..." required></textarea>
+                            <textarea rows="2" class="form-control" name="remark" placeholder="备注信息..." required></textarea>
                         </div>
                     </div>
                     <div class="form-row row mt-3">
                         点击确认后, 该货品将会被永久删除, 并不能再执行售卖等操作, 请再次确定该货品现在的实际状态和必要性, 然后确定该操作!
                     </div>
-                    <div class="form-row row mt-3">
-                        Helper text
+                    <div class="form-row row mt-3 help_text d-none">
+                        <div class="col-auto flex-grow-1 mx-1 alert alert-danger text-monospace small" role="alert"></div>
                     </div>
                 </form>
             
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">返回</button>
-                <button type="button" class="btn btn-danger">确定</button>
+                <div class="spinner-border text-secondary d-none" role="status"></div>
+                <button type="button" class="btn btn-danger submit">确定删除</button>
+                <button type="button" class="btn btn-secondary back" data-dismiss="modal">返回</button>
             </div>
         </div>
     </div>
@@ -518,11 +519,33 @@
                             quantity_int = parseInt(quantity);
                     if(inventory == inventory_int && quantity == quantity_int){
                         if(inventory_int + quantity_int <= inventory_int){
-                            after_inventory.html("进货数量需大于零");
+                            after_inventory.html("进货数量应大于零");
+                            return;
                         }
                         after_inventory.html(inventory_int + quantity_int);
                     }else{
                         after_inventory.html("请输入正确的进货数量")
+                    }
+                },
+                export_inventory_change = function(){
+                    let good_export_modal = $("#modal_for_export"),
+                            quantity = good_export_modal.find("input[name=quantity]").val(),
+                            inventory = good_export_modal.find(".inventory").html(),
+                            after_inventory = good_export_modal.find(".after_quantity"),
+                            inventory_int = parseInt(inventory),
+                            quantity_int = parseInt(quantity);
+                    after_inventory.removeClass("text-danger")
+                    if(inventory == inventory_int && quantity == quantity_int){
+                        if(quantity_int <= 0){
+                            after_inventory.html("撤柜数量应大于零");
+                            return;
+                        }
+                        if(inventory_int - quantity_int < 0){
+                            after_inventory.addClass("text-danger");
+                        }
+                        after_inventory.html(inventory_int - quantity_int);
+                    }else{
+                        after_inventory.html("请输入正确的撤柜数量");
                     }
                 },
                 
@@ -532,6 +555,8 @@
                     good_sell_modal.find("input[name=quantity]").change(price_quantity_change);
                     let good_import_modal = $("#modal_for_import");
                     good_import_modal.find("input[name=quantity]").change(inventory_change);
+                    let good_export_modal = $("#modal_for_export");
+                    good_export_modal.find("input[name=quantity]").change(export_inventory_change);
                 }();
         $("#hide_price").click(function(){
             if($(this)[0].checked){
@@ -557,6 +582,12 @@
                     };
             set_good_modal_info(good_sell_modal, good_id, good_name, good_price, good_quantity);
             alert_msg(good_sell_modal, "");
+            if(good_sell_modal.data("free_sell") === "1"){
+                good_sell_modal.data("free_sell", "0");
+            }
+            if(good_sell_modal.data("confirm") === "1"){
+                good_sell_modal.data("confirm", "0");
+            }
             good_sell_modal.modal({
                 backdrop: "static",
                 focus: true,
@@ -583,6 +614,119 @@
                 show: true
             });
         });
+        $(".good_export_btn").click(function(){
+            let good_card = $(this).parents(".good_card"),
+                    good_id = good_card.data("id"),
+                    good_name = good_card.data("name"),
+                    good_quantity = good_card.data("quantity"),
+                    good_export_modal = $("#modal_for_export"),
+                    set_good_modal_info = function(modal_jd, id, name, quantity){
+                        modal_jd.find("input[name=id]").val(id);
+                        modal_jd.find("input[name=name]").val(name);
+                        modal_jd.find(".inventory").html(quantity);
+                        export_inventory_change();
+                    }
+            set_good_modal_info(good_export_modal, good_id, good_name, good_quantity);
+            alert_msg(good_export_modal, "");
+            good_export_modal.modal({
+                backdrop: "static",
+                focus: true,
+                show: true
+            });
+        });
+        $(".good_remove_btn").click(function(){
+            let good_card = $(this).parents(".good_card"),
+                    good_id = good_card.data("id"),
+                    good_name = good_card.data("name"),
+                    good_quantity = good_card.data("quantity"),
+                    good_remove_modal = $("#modal_for_remove"),
+                    set_good_modal_info = function(modal_jd, id, name, quantity){
+                        modal_jd.find("input[name=id]").val(id),
+                        modal_jd.find("input[name=name]").val(name),
+                        modal_jd.find(".inventory").html(quantity);
+                    }
+            set_good_modal_info(good_remove_modal, good_id, good_name, good_quantity);
+            alert_msg(good_remove_modal, "");
+            good_remove_modal.modal({
+                backdrop: "static",
+                focus: true,
+                show: true
+            });
+        });
+        $("#modal_for_remove .modal-footer button.submit").click(function(){
+            let good_remove_modal = $("#modal_for_remove"),
+                    good_id = good_remove_modal.find("input[name=id]").val(),
+                    good_quantity = good_remove_modal.find("input[name=quantity]").val(),
+                    good_remark = good_remove_modal.find("textarea[name=remark]").val(),
+                    req_param = {
+                        id: good_id,
+                        remark: good_remark,
+                        op: "remove"
+                    };
+            if(good_id === ""){
+                alert_msg(good_remove_modal, "本对话框展示无效, 没有设定ID.");
+                return;
+            }
+            if(good_remark === ""){
+                alert_msg(good_remove_modal, "使用删除必须填写备注信息, 请填写备注信息.");
+                return;
+            }
+            set_enable(good_remove_modal, false);
+            let ajax_handle = ajax_gen("/api", req_param, function(res_data, textStatus, jqXHR){
+                let data = res_data.data;
+                if(data === "success"){
+                    good_remove_modal.modal("hide");
+                    location.reload();
+                    return;
+                }else{
+                    alert_msg(good_remove_modal, "服务器未正常返回回执, 请联系管理员.<br>" + get_string(res_data));
+                }
+                set_enable(good_remove_modal, true);
+            }, ajax_failed_handler, function(){
+                set_enable(good_remove_modal, true);
+            });
+        });
+        $("#modal_for_export .modal-footer button.submit").click(function(){
+            let good_export_modal = $("#modal_for_export"),
+                    good_id = good_export_modal.find("input[name=id]").val(),
+                    good_quantity = good_export_modal.find("input[name=quantity]").val(),
+                    good_inventory = good_export_modal.find(".inventory").html(),
+                    good_remark = good_export_modal.find("textarea[name=remark]").val(),
+                    req_param = {
+                        id: good_id,
+                        quantity: good_quantity,
+                        remark: good_remark,
+                        op: "export",
+                    };
+            if(good_id === ""){
+                alert_msg(good_export_modal, "本对话框展示无效, 没有设定ID.");
+                return;
+            }
+            if(parseInt(good_quantity) != good_quantity || parseInt(good_quantity) <= 0){
+                alert_msg(good_export_modal, "请确认撤柜数量.");
+                return;
+            }
+            export_inventory_change();
+            if(parseInt(good_inventory) - parseInt(good_quantity) < 0 && good_export_modal.data("confirm") !== "1"){
+                alert_msg(good_export_modal, "撤柜数量大于存货数量, 请确认撤柜数量是否正确, 若确认正确, 请再次点击确定按钮撤柜.");
+                good_export_modal.data("confirm", "1");
+                return;
+            }
+            set_enable(good_export_modal, false);
+            let ajax_handle = ajax_gen("/api", req_param, function(res_data, textStatus, jqXHR){
+                let data = res_data.data;
+                if(data === "success"){
+                    good_export_modal.modal("hide");
+                    location.reload();
+                    return;
+                }else{
+                    alert_msg(good_export_modal, "服务器未正常返回回执, 请联系管理员.<br>" + get_string(res_data));
+                }
+                set_enable(good_export_modal, true);
+            }, ajax_failed_handler, function(){
+                set_enable(good_export_modal, true);
+            }, good_export_modal[0]);
+        });
         $("#modal_for_import .modal-footer button.submit").click(function(){
             let good_import_modal = $("#modal_for_import"),
                     good_id = good_import_modal.find("input[name=id]").val(),
@@ -600,7 +744,7 @@
                 return;
             }
             if(parseInt(good_quantity) != good_quantity || parseInt(good_quantity) <= 0){
-                alert_msg(good_sell_modal, "请确认售出数量.");
+                alert_msg(good_import_modal, "请确认售出数量.");
                 return;
             }
             inventory_change();

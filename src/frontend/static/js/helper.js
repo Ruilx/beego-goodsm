@@ -50,6 +50,9 @@ function set_enable(form_jd, bool){
 	}
 }
 function get_type(res_text){
+	if(typeof(res_text) !== "string"){
+		return "{Empty}";
+	}
 	let trimed = res_text.trim();
 	if(trimed === ""){
 		return "{Empty}"
@@ -76,11 +79,15 @@ function get_type(res_text){
 function get_string(res_text, length = 100){
 	switch(get_type(res_text)){
 		case "HTML":
-			return "{HTML string}";
+			return "{HTML}: " + res_text.trim().substring(0, length).replace("<", "&lt;").replace(">", "&gt;");
 		case "XML":
-			return "{XML string}";
+			return "{XML}: " + res_text.trim().substring(0, length).replace("<", "&lt;").replace(">", "&gt;");
 		case "JSON":
 			return res_text.trim().substring(0, length);
+		case "{Empty}":
+			return "{Empty}";
+		case "UNKNOWN":
+			return "{UNKNOWN}"
 		default:
 			return "{Unstructed string}";
 	}
