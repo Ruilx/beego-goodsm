@@ -2,40 +2,17 @@ package models
 
 import (
 	"fmt"
+	"reflect"
+	"strings"
+	"time"
+
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/beego/beego/v2/server/web"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/pkg/errors"
-	"reflect"
-	"strings"
-	"time"
 )
 
 const DBNAME = "default"
-
-//type Good struct {
-//	Id int32 `orm:"column:id;type:int;AUTO_INCREMENT;not null"`
-//	Name string `orm:"column:name;type:varchar(32);index:name_i"`
-//	Desc string `orm:"column:desc;type:text"`
-//	Price float64 `orm:"column:price;type:double;default (0)"`
-//	Quantity int64 `orm:"column:quantity;type:BIGINT;not null"`
-//	CreateTime time.Time `orm:"column:create_time;type:TIMESTAMP;default (datetime('now', 'localtime'))"`
-//}
-
-/** CREATE TABLE SQL:
-CREATE TABLE "main"."NewTable" (
-"id"  INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-"name"  varchar(32) NOT NULL,
-"desc"  TEXT,
-"price"  REAL,
-"quantity"  INTEGER,
-"create_at"  datetime,
-"update_at"  datetime,
-"delete_at"  datetime
-);
-CREATE INDEX "main"."name_i"
-ON "goods" ("name" ASC);
-*/
 
 const (
 	ORDERBY_UNKNOWN = 0
@@ -43,16 +20,45 @@ const (
 	ORDERBY_DESC
 )
 
+const (
+	STATUS_UNKNWON = 0 // 不使用
+	STATUS_ACTIVE      // 默认, 状态有效
+	STATUS_DELETED     // 状态被人工删除, 但未还原
+	STATUS_REVOKE      // 状态被撤回(比如撤回卖出等)
+)
+
+const (
+	EVENT_ADD    = "登记"
+	EVENT_SELL   = "售出"
+	EVENT_IMPORT = "进货"
+	EVENT_EXPORT = "撤柜"
+	EVENT_DELETE = "删除"
+)
+
 type Good struct {
-	Id       int32   `orm:"column(id); auto; pk"`
-	Name     string  `orm:"column(name); size(32); unique"`
-	Desc     string  `orm:"column(desc); type(text); null"`
-	Price    float64 `orm:"column(price); default(0)"`
-	Quantity int64   `orm:"column(quantity); default(0)"`
-	Deleted  bool    `orm:"column(deleted); default(0)"`
+	Id         int32     `orm:"column(id); auto; pk"`
+	Name       string    `orm:"column(name); size(32); unique"`
+	Desc       string    `orm:"column(desc); type(text); null"`
+	Price      float64   `orm:"column(price); default(0)"`
+	Quantity   int64     `orm:"column(quantity); default(0)"`
+	Image      string    `orm:"column(image); size(64); default()"`
+	Deleted    bool      `orm:"column(deleted); default(0)"`
 	CreateTime time.Time `orm:"column(create_time); auto_now_add; type(datetime)"`
 	UpdateTime time.Time `orm:"column(update_time); auto_now; type(datetime)"`
 	DeleteTime time.Time `orm:"column(delete_time); type(datetime); null; default(null)"`
+}
+
+type History struct {
+	Id         int64     `orm:"column(id); auto; pk"`
+	Event      string    `orm:"column(event); size(64);"`
+	GoodId     int32     `orm:"column(good_id)"`
+	GoodName   string    `orm:"column(good_name); size(32)"`
+	GoodDesc   string    `orm:"column(good_desc); type(text); null"`
+	GoodPrice  float64   `orm:"column(good_price); default(0)"`
+	GoodImage  string    `orm:"column(good_image); default()"`
+	Remark     string    `orm:"column(remark); type(text); null"`
+	Status     int8      `orm:"column(status); default(1)"`
+	CreateTime time.Time `orm:"column(create_time); auto_now_add; type(datetime)"`
 }
 
 func init() {
@@ -75,12 +81,15 @@ func init() {
 	if err = orm.RegisterDataBase(DBNAME, "sqlite3", dbPath); err != nil {
 		panic("Cannot register database " + DBNAME + " for sqlite3: " + err.Error())
 	}
-	orm.RegisterModel(new(Good))
+	// 注册表
+	orm.RegisterModel(&Good{})
+	orm.RegisterModel(&History{})
 	if err = orm.RunSyncdb(DBNAME, false, true); err != nil {
 		panic("Run sync db failed, error: " + err.Error())
 	}
 }
 
+// 添加货物
 func AddGoods(goods *Good) (id int64, err error) {
 	fmt.Println("Good: ", goods)
 	ormHandle := orm.NewOrmUsingDB(DBNAME)
@@ -88,6 +97,7 @@ func AddGoods(goods *Good) (id int64, err error) {
 	return
 }
 
+// 按照ID获取货物信息
 func GetGoodsById(id int32) (res *Good, err error) {
 	ormHandle := orm.NewOrmUsingDB(DBNAME)
 	result := &Good{Id: id}
@@ -97,7 +107,8 @@ func GetGoodsById(id int32) (res *Good, err error) {
 	return result, err
 }
 
-func GetGoodsByName(name string) (res *Good, err error){
+// 按照名称获取货物信息
+func GetGoodsByName(name string) (res *Good, err error) {
 	ormHandle := orm.NewOrmUsingDB(DBNAME)
 	result := &Good{Name: name}
 	if err = ormHandle.QueryTable(&Good{}).Filter("Name", name).RelatedSel().One(result); err != nil {
@@ -106,9 +117,29 @@ func GetGoodsByName(name string) (res *Good, err error){
 	return result, err
 }
 
-func GetGoods(query map[string]string, fields []string, sortBy []string, order []int, offset int64, limit int64) (ml []interface{}, err error) {
-	ormHandle := orm.NewOrm()
-	queryCond := ormHandle.QueryTable(new(Good))
+func GetGoods(name string, order int) (ml []Good, err error) {
+	ormHandle := orm.NewOrmUsingDB(DBNAME)
+	queryCond := ormHandle.QueryTable(&Good{})
+
+	if name != "" {
+		queryCond = queryCond.Filter("name__icontains", name)
+	}
+	if order == ORDERBY_UNKNOWN || order == ORDERBY_ASC {
+		queryCond = queryCond.OrderBy("create_time")
+	} else {
+		queryCond = queryCond.OrderBy("-create_time")
+	}
+
+	if _, err = queryCond.All(&ml); err != nil {
+		return nil, err
+	}
+	return ml, nil
+}
+
+// 获得所有货物
+func GetGoods2(query map[string]string, fields []string, sortBy []string, order []int, offset int64, limit int64) (ml []interface{}, err error) {
+	ormHandle := orm.NewOrmUsingDB(DBNAME)
+	queryCond := ormHandle.QueryTable(&Good{})
 
 	for k, v := range query {
 		k = strings.Replace(k, ".", "__", -1)
@@ -171,8 +202,9 @@ func GetGoods(query map[string]string, fields []string, sortBy []string, order [
 	return ml, nil
 }
 
+// 按照ID更新货物 ID写至good.Id
 func UpdateGoodsById(good *Good) (id int64, err error) {
-	ormHandle := orm.NewOrm()
+	ormHandle := orm.NewOrmUsingDB(DBNAME)
 	idReady := Good{Id: good.Id}
 	if err = ormHandle.Read(&idReady); err != nil {
 		if id, err = ormHandle.Update(good); err == nil {
@@ -182,6 +214,7 @@ func UpdateGoodsById(good *Good) (id int64, err error) {
 	return
 }
 
+// 按照ID删除货物
 func DeleteGoodsById(id int32) (ok bool, err error) {
 	ormHandle := orm.NewOrm()
 	good := Good{Id: id}
@@ -189,4 +222,40 @@ func DeleteGoodsById(id int32) (ok bool, err error) {
 		return false, err
 	}
 	return true, err
+}
+
+// 写入售货历史表
+func AddSellsHistory(his *History) (id int64, err error) {
+	ormHandle := orm.NewOrmUsingDB(DBNAME)
+	id, err = ormHandle.Insert(his)
+	return
+}
+
+// 读取售货历史表
+func getSellsHistory(startTime time.Time, endTime time.Time, name string, order int) (mh []History, err error) {
+	ormHandle := orm.NewOrmUsingDB(DBNAME)
+	queryCond := ormHandle.QueryTable(&History{})
+
+	if !startTime.IsZero() {
+		queryCond = queryCond.Filter("create_time__gte", startTime)
+	}
+	if !endTime.IsZero() {
+		queryCond = queryCond.Filter("create_time__lte", endTime)
+	}
+	if name != "" {
+		queryCond = queryCond.Filter("good_name__icontains", name)
+	}
+
+	if order == ORDERBY_UNKNOWN || order == ORDERBY_DESC {
+		queryCond = queryCond.OrderBy("-create_time")
+	} else if order == ORDERBY_ASC {
+		queryCond = queryCond.OrderBy("create_time")
+	} else {
+		return nil, errors.New("Error for order, needs one of ORDERBY_ASC, ORDERBY_DESC, ORDERBY_UNKNOWN.")
+	}
+
+	if _, err = queryCond.All(&mh); err != nil {
+		return nil, err
+	}
+	return mh, nil
 }

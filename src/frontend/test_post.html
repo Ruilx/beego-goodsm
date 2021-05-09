@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+    <form id="form">
+        NAME: <input name="name" type="text" required><br>
+        DESC: <input name="desc" type="text"><br>
+        PRICE: <input name="price" type="number" required><br>
+        QUANTITY: <input name="quantity" type="number" required><br>
+        IMAGE: <input name="image" type="file"><br>
+        OP: <input name="op" type="text" readonly required value="add">
+        <input type="submit">
+    </form>
+    <div>
+        <pre id="res"></pre>
+    </div>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        $("#form").submit(function(e){
+            e.preventDefault();
+            $.ajax({
+                url: "http://localhost:8080/api",
+                type: "post",
+                success: function(data, textStatus, jqXHR){
+                    $("#res").html(data);
+                },
+                error: function(jqXHR, textStatus, error){
+                    $("#res").html(textStatus + error);
+                },
+                crossDomain: true,
+                headers: {
+                    "Access-Control-Allow-Origin": "*",
+                    "Origin": "http://localhost",
+                    
+                }
+            })
+        })
+    </script>
+</body>
+</html>
