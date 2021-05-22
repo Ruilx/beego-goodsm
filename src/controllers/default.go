@@ -70,24 +70,25 @@ func (c *MainController) Post() {
 }
 
 func (c *MainController) GetGoods() {
-	name := c.Ctx.Input.Query("name")
+	c.AjaxSetResult(100, "GetGoods Method.")
+	// name := c.Ctx.Input.Query("name")
 
-	fmt.Println("Search: " + name)
+	// fmt.Println("Search: " + name)
 
-	var find_fields map[string]string
-	if name != "" {
-		find_fields["name"] = name
-	}
+	// var find_fields map[string]string
+	// if name != "" {
+	// 	find_fields["name"] = name
+	// }
 
-	var goods []interface{}
-	var find []string
-	var sort []int
-	var err error
-	if goods, err = models.GetGoods(find_fields, find, find, sort, 0, 0); err != nil {
-		c.AjaxSetResult(500, "Expect to read database but failed: "+err.Error())
-		return
-	}
-	fmt.Println(goods)
+	// var goods []interface{}
+	// var find []string
+	// var sort []int
+	// var err error
+	// if goods, err = models.GetGoods(find_fields, find, find, sort, 0, 0); err != nil {
+	// 	c.AjaxSetResult(500, "Expect to read database but failed: "+err.Error())
+	// 	return
+	// }
+	// fmt.Println(goods)
 
 }
 

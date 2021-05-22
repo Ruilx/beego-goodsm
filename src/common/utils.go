@@ -1,7 +1,6 @@
-package main
+package common
 
 import (
-	"fmt"
 	"net"
 )
 
@@ -18,15 +17,4 @@ func GetIPAddress() (ip []string, err error) {
 		}
 	}
 	return ip, nil
-}
-
-func main() {
-	var ip []string
-	var err error
-	if ip, err = GetIPAddress(); err != nil {
-		fmt.Println(err.Error())
-	}
-	for _, v := range ip {
-		fmt.Println(v)
-	}
 }
