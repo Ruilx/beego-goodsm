@@ -10,4 +10,5 @@ import (
 func init() {
 	beego.Router("/api", &controllers.MainController{})
 	beego.Router("/", &controllers.IndexController{})
+	beego.Router("/add", &controllers.AddGoodController{})
 }

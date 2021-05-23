@@ -97,17 +97,24 @@ func (c *MainController) AddGood() {
 	desc := c.Ctx.Input.Query("desc")
 	price := c.Ctx.Input.Query("price")
 	quantity := c.Ctx.Input.Query("quantity")
+	imageFile, imageHeader, err := c.GetFile("image")
 
-	var err error
 
-	fmt.Println(c.Ctx.Input.Query("image"))
+
+	fmt.Println("name: ", name)
+	fmt.Println("desc: ", desc)
+	fmt.Println("price: ", price)
+	fmt.Println("quantity: ", quantity)
+	fmt.Println(c.GetFile("image"))
+	fmt.Println("=========")
+
+	if imageFile != nil{
+		defer imageFile.Close()
+		c.SaveToFile("image", "static/upload/" + )
+	}
+
+
 	return
-	file, handle, err := c.GetFile("image")
-
-	fmt.Println(reflect.TypeOf(name), "=", name, ", ",
-		reflect.TypeOf(desc), "=", desc, ", ",
-		reflect.TypeOf(price), "=", price, ", ",
-		reflect.TypeOf(quantity), "=", quantity)
 
 	if name == "" {
 		c.AjaxSetResult(400, "Expect an argument 'name', but not found.")

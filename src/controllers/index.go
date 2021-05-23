@@ -13,7 +13,7 @@ func (c *IndexController) Prepare() {
 }
 
 func (c *IndexController) Get() {
-	name := c.Ctx.Input.Query("name")
+	//name := c.Ctx.Input.Query("name")
 
 	c.TplName = "index.html"
 }

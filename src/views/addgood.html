@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh_CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0,minimum-scale=1.0, user-scalable=0" />
+    <meta http-equiv="Cache-Control" content="no-transform">
+    <meta http-equiv="Cache-Control" content="no-siteapp">
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body style="background-color: #E0E0E0">
+<nav class="navbar navbar-expand-lg sticky-top navbar-light bg-light">
+    <!--<nav class="navbar navbar-inverse navbar-fixed-top">-->
+    <a class="navbar-brand" href="#">Goods Manager</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="#">主页</a>
+            </li>
+            <li class="nav-item active">
+                <a class="nav-link" href="#">添加货物 <span class="sr-only">(激活)</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">售货历史</a>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    高级操作
+                </a>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <a class="dropdown-item" href="#">高级操作1</a>
+                    <a class="dropdown-item" href="#">高级操作2</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#">高级操作3</a>
+                </div>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">被禁用的项目</a>
+            </li>
+        </ul>
+        <form class="form-inline my-2 my-lg-0">
+            <input class="form-control mr-sm-2" type="search" placeholder="查询货物" aria-label="查询">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">搜索名称</button>
+        </form>
+    </div>
+</nav>
+
+<div class="container mt-5 col-xs-12" id="main">
+    <div class="row clearfix">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-header">
+                    添加货物
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title">请填写新增的货品的信息, 如果名称与库存中名称相同的话, 则以库存为标准做进货操作, 请注意</h3>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <form id="add-good">
+                            <div class="form-group row d-none">
+                                <label for="goods_id" class="col-sm-2 d-none d-sm-block col-xs-12 col-form-label text-right">ID</label>
+                                <label for="goods_id" class="col-sm-2 d-sm-none col-xs-12 col-form-label">ID</label>
+                                <div class="col-sm-10 col-xs-12">
+                                    <input type="text" readonly class="form-control-plaintext" id="goods_id" value="新增货品">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="name" class="col-sm-2 d-none d-sm-block col-form-label col-form-label-lg text-right"><span class="badge badge-danger">必填</span>货品名称:</label>
+                                <label for="name" class="col-sm-2 d-sm-none col-form-label col-form-label-lg">货品名称:<span class="badge badge-danger float-right">必填</span></label>
+                                <div class="col-sm-10 col-xs-12">
+                                    <input type="text" class="form-control form-control-lg" id="name" name="name" placeholder="简短的货品名称, 15字以内, 所有相同货品名称以此为准" required>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="desc" class="col-sm-2 d-none d-sm-block col-xs-12 col-form-label text-right">货品描述:</label>
+                                <label for="desc" class="col-sm-2 d-sm-none col-xs-12 col-form-label">货品描述:</label>
+                                <div class="col-sm-10 col-xs-12">
+                                    <textarea rows="3" class="form-control" id="desc" name="desc" placeholder="货品的描述, 对货品具体的批次, 样式等进行描述, 500字以内, 如库中已有相应物品, 则该描述被已存在的覆盖"></textarea>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="price" class="col-sm-2 d-none d-sm-block col-xs-12 col-form-label text-right"><span class="badge badge-danger">必填</span>单价:</label>
+                                <label for="price" class="col-sm-2 d-sm-none col-xs-12 col-form-label">单价:<span class="badge badge-danger float-right">必填</span></label>
+                                <div class="col-sm-10 col-xs-12">
+                                    <input type="number" class="form-control" id="price" name="price" placeholder="填写物品定价" required>
+                                </div>
+                                <div class="col-sm-12">
+                                    <small class="form-text text-muted float-right">单价: 必填, 请填写货品单价, 数字, 精确到小数点2位</small>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="quantity" class="col-sm-2 d-none d-sm-block col-xs-12 col-form-label text-right"><span class="badge badge-danger">必填</span>库存:</label>
+                                <label for="quantity" class="col-sm-2 d-sm-none col-xs-12 col-form-label">库存:<span class="badge badge-danger float-right">必填</span></label>
+                                <div class="col-sm-10 col-xs-12">
+                                    <input type="number" class="form-control" id="quantity" name="quantity" placeholder="填写现行库存" required>
+                                </div>
+                                <div class="col-sm-12">
+                                    <small class="form-text text-muted float-right">库存: 必填, 请填写库存, 整数</small>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-2 d-none d-sm-block col-xs-12 col-form-label text-right" for="image">上传照片</label>
+                                <label class="col-sm-2 d-sm-none col-xs-12 col-form-label" for="image">上传照片</label>
+                                <div class="col-sm-10 col-xs-12">
+                                    <input type="file" class="form-control-file" id="image" name="image">
+                                </div>
+                                <div class="invalid-feedback">上传的内容及信息</div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-12 col-xs-12">
+                                    <button type="submit" class="btn btn-primary">增加货品</button>
+                                </div>
+                            </div>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-5 col-xs-12" id="test">
+    <div class="row clearfix">
+        <div class="col">
+            <div class="card mb-3">
+                <div class="card-header">
+                    测试功能
+                </div>
+                <div class="card-body">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal_for_success">添加成功模态框</button>
+                        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modal_for_failed">添加失败模态框</button>
+                        <button type="button" class="btn btn-secondary">其他...</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for success -->
+<div class="modal fade" id="modal_for_success" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">添加成功</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                此货品已添加成功, 是否继续添加下一件货品?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary">返回主页</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal">继续添加</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Model for failed -->
+<div class="modal fade" id="modal_for_failed" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">添加失败</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                系统尝试添加货品, 但遇到了问题, 请参见以下信息, 修复后可再试一次.
+                <div class="card card-body">
+                    错误信息...
+                </div>
+                如果您能自行确定问题所在, 您可尝试自行修复, 如需帮助, 请将错误信息复制后发送给管理员.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary">返回主页</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal">回到页面</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.bundle.min.js"></script>
+<script src="static/js/helper.js"></script>
+<script type="text/javascript">
+    "use strict";
+    $("#add-good").submit(function(e){
+        e.preventDefault();
+        let name = $(this).find("[name=name]").val(),
+            desc = $(this).find("[name=desc]").val(),
+            price = $(this).find("[name=price]").val(),
+            quantity = $(this).find("[name=quantity]").val(),
+            image = $(this).find("[name=image]").get(0).files[0],
+            formData = new FormData();
+        formData.append("name", name);
+        formData.append("desc", desc);
+        formData.append("price", price);
+        formData.append("quantity", quantity);
+        formData.append("image", image);
+
+        console.log(formData);
+
+        ajax_gen("/api?op=add", formData, function(){console.log("Success.")}, ajax_failed_handler, undefined, this, "post", {processData: false, contentType: false});
+    })
+</script>
+</body>
+</html>

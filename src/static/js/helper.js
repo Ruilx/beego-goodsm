@@ -1,6 +1,6 @@
 "use strict";
-function ajax_gen(url, data1, success, error, logical_failed = undefined, context=this, method="post"){
-	return $.ajax({
+function ajax_gen(url, data1, success, error, logical_failed = undefined, context=this, method="post", config={}){
+	let param = {
 		url: url,
 		async: true,
 		data: data1,
@@ -32,7 +32,11 @@ function ajax_gen(url, data1, success, error, logical_failed = undefined, contex
 		type: method,
 		timeout: 5000,
 		context: context,
-	})
+	};
+	for(let c in config){
+		param[c] = config[c];
+	}
+	return $.ajax(param)
 }
 function set_enable(form_jd, bool){
 	if(!bool){
