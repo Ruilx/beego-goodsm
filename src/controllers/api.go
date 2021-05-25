@@ -1,11 +1,8 @@
 package controllers
 
 import (
-	"beego-goodsm/models"
+	"beego-goodsm/common"
 	"fmt"
-	"reflect"
-	"strconv"
-
 	beego "github.com/beego/beego/v2/server/web"
 )
 
@@ -27,7 +24,7 @@ func (c *MainController) Prepare() {
 		c.Ctx.Output.Header("ajaxreq", "notforce")
 	}
 	c.res.Data = make(map[string]interface{})
-	c.res.Msg = "Success."
+	c.res.Msg = "Return code not mentioned."
 }
 
 //func (c *MainController) Get() {
@@ -97,6 +94,7 @@ func (c *MainController) AddGood() {
 	desc := c.Ctx.Input.Query("desc")
 	price := c.Ctx.Input.Query("price")
 	quantity := c.Ctx.Input.Query("quantity")
+	hasImg := c.Ctx.Input.Query("hasImg")
 	imageFile, imageHeader, err := c.GetFile("image")
 
 
@@ -110,48 +108,58 @@ func (c *MainController) AddGood() {
 
 	if imageFile != nil{
 		defer imageFile.Close()
-		c.SaveToFile("image", "static/upload/" + )
+		filename, err := common.RerenderImage(imageFile, imageHeader)
+		if err != nil{
+			c.AjaxSetResult(400, "Image rerender failed: " + err.Error())
+			return
+		}
+		fmt.Println(filename)
+
+	}else{
+		if hasImg != "ok"{
+			c.AjaxSetResult(400, "Image was corrupted: " + err.Error())
+			return
+		}
 	}
 
 
 	return
 
-	if name == "" {
-		c.AjaxSetResult(400, "Expect an argument 'name', but not found.")
-		return
-	}
-	if err != nil {
-		c.AjaxSetResult(500, "Image not a vaild err: "+err.Error())
-		return
-	}
-	defer file.Close()
-	imagePath := "static/upload/" + handle.Filename
-	c.SaveToFile("image", imagePath)
-
-	var floatPrice float64
-
-	var intQuantity int64
-	var id int64
-	if price == "" {
-		floatPrice = 0
-	}
-	if floatPrice, err = strconv.ParseFloat(price, 64); err != nil {
-		c.AjaxSetResult(400, "Expect an float type 'price', but parse failed: "+err.Error())
-		return
-	}
-	if quantity == "" {
-		intQuantity = 0
-	}
-	if intQuantity, err = strconv.ParseInt(quantity, 10, 64); err != nil {
-		c.AjaxSetResult(400, "Expect an int type 'quantity', but parse failed: "+err.Error())
-		return
-	}
-	good := models.Good{Name: name, Desc: desc, Price: floatPrice, Quantity: intQuantity}
-	if id, err = models.AddGoods(&good); err != nil {
-		c.AjaxSetResult(501, "Cannot insert a good to database, system error: "+err.Error())
-		return
-	}
-	fmt.Println("con: ", id, err == nil)
-	c.res.Data["id"] = id
-	c.AjaxSetResult(200, "Success")
+	//if name == "" {
+	//	c.AjaxSetResult(400, "Expect an argument 'name', but not found.")
+	//	return
+	//}
+	//if err != nil {
+	//	c.AjaxSetResult(500, "Image not a vaild err: "+err.Error())
+	//	return
+	//}
+	//imagePath := "static/upload/" + handle.Filename
+	//c.SaveToFile("image", imagePath)
+	//
+	//var floatPrice float64
+	//
+	//var intQuantity int64
+	//var id int64
+	//if price == "" {
+	//	floatPrice = 0
+	//}
+	//if floatPrice, err = strconv.ParseFloat(price, 64); err != nil {
+	//	c.AjaxSetResult(400, "Expect an float type 'price', but parse failed: "+err.Error())
+	//	return
+	//}
+	//if quantity == "" {
+	//	intQuantity = 0
+	//}
+	//if intQuantity, err = strconv.ParseInt(quantity, 10, 64); err != nil {
+	//	c.AjaxSetResult(400, "Expect an int type 'quantity', but parse failed: "+err.Error())
+	//	return
+	//}
+	//good := models.Good{Name: name, Desc: desc, Price: floatPrice, Quantity: intQuantity}
+	//if id, err = models.AddGoods(&good); err != nil {
+	//	c.AjaxSetResult(501, "Cannot insert a good to database, system error: "+err.Error())
+	//	return
+	//}
+	//fmt.Println("con: ", id, err == nil)
+	//c.res.Data["id"] = id
+	//c.AjaxSetResult(200, "Success")
 }
