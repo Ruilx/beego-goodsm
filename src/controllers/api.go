@@ -2,8 +2,12 @@ package controllers
 
 import (
 	"beego-goodsm/common"
+	"beego-goodsm/models"
 	"fmt"
+	"github.com/beego/beego/v2/client/orm"
+	"github.com/beego/beego/v2/core/logs"
 	beego "github.com/beego/beego/v2/server/web"
+	"strconv"
 )
 
 type ResJson struct {
@@ -15,6 +19,7 @@ type ResJson struct {
 type MainController struct {
 	beego.Controller
 	res ResJson
+	log *logs.BeeLogger
 }
 
 func (c *MainController) Prepare() {
@@ -25,6 +30,7 @@ func (c *MainController) Prepare() {
 	}
 	c.res.Data = make(map[string]interface{})
 	c.res.Msg = "Return code not mentioned."
+	c.log = logs.GetBeeLogger()
 }
 
 //func (c *MainController) Get() {
@@ -95,32 +101,74 @@ func (c *MainController) AddGood() {
 	price := c.Ctx.Input.Query("price")
 	quantity := c.Ctx.Input.Query("quantity")
 	hasImg := c.Ctx.Input.Query("hasImg")
-	imageFile, imageHeader, err := c.GetFile("image")
+	imageFile, imageHeader, imageErr := c.GetFile("image")
+	imageSaveFilename := ""
 
+	c.log.Info("Entry AddGood operation.")
+	c.log.Info("PARAM: name = '" + name + "'")
+	c.log.Info("PARAM: desc = '" + desc + "'")
+	c.log.Info("PARAM: price = '" + price + "'" )
+	c.log.Info("PARAM: quantity = '" + quantity + "'")
+	c.log.Info("PARAM: hasImg = '" + hasImg + "'")
 
+	if name == ""{
+		c.log.Error("[PARAM] received name is empty")
+		c.AjaxSetResult(400, "param error")
+		return
+	}
 
-	fmt.Println("name: ", name)
-	fmt.Println("desc: ", desc)
-	fmt.Println("price: ", price)
-	fmt.Println("quantity: ", quantity)
-	fmt.Println(c.GetFile("image"))
-	fmt.Println("=========")
+	_, err := models.GetGoodsByName(name)
+	if err != orm.ErrNoRows{
+		c.log.Error("[PARAM] name is already exists")
+		c.AjaxSetResult(400, "name is already exists")
+		return
+	}else if err != nil{
+		c.log.Error("[DB] database got an error: " + err.Error())
+		c.AjaxSetResult(500, "database error: " + err.Error())
+		return
+	}
+
+	pricef, err := strconv.ParseFloat(price, 10)
+	if price == "" || err != nil {
+		c.log.Error("[PARAM] received price is not a float")
+		c.AjaxSetResult(400, "price is invalid")
+		return
+	}
+	quantityi, err := strconv.ParseInt(quantity, 10, 64)
+	if quantity == "" || err != nil {
+		c.log.Error("[PARAM] received quantity is not an integer")
+		c.AjaxSetResult(400, "quantity is invalid")
+		return
+	}
 
 	if imageFile != nil{
 		defer imageFile.Close()
-		filename, err := common.RerenderImage(imageFile, imageHeader)
+		if imageHeader == nil{
+			c.log.Error("imageHeader is nil when imageFile is not nil")
+			c.AjaxSetResult(500, "imageHeader is nil when imageFile is not nil")
+			return
+		}
+		sizeFormat, errFormat := common.NumberUnitFormat(imageHeader.Size, 2, 1024, 0, "")
+		if errFormat != nil {
+			sizeFormat = strconv.FormatInt(imageHeader.Size, 10)
+		}
+		c.log.Info("PARAM: image = ['" + imageHeader.Filename + "', '" + sizeFormat + "', '" + imageHeader.Header.Get(common.MINE_CONTENT_TYPE) + "'")
+		imageSaveFilename, err = common.RerenderImage(imageFile, imageHeader)
 		if err != nil{
 			c.AjaxSetResult(400, "Image rerender failed: " + err.Error())
 			return
 		}
-		fmt.Println(filename)
-
-	}else{
+	}else if imageErr != nil{
 		if hasImg != "ok"{
-			c.AjaxSetResult(400, "Image was corrupted: " + err.Error())
+			c.AjaxSetResult(400, "Image was corrupted: " + imageErr.Error())
 			return
 		}
+	}else{
+		c.AjaxSetResult(400, "Image upload parse failed.")
+		return
 	}
+
+
 
 
 	return

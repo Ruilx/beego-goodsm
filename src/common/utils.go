@@ -2,6 +2,7 @@ package common
 
 import (
 	"errors"
+	"fmt"
 	"github.com/go-basic/uuid"
 	"github.com/nfnt/resize"
 	"golang.org/x/image/bmp"
@@ -9,9 +10,11 @@ import (
 	"image/jpeg"
 	"image/png"
 	"io"
+	"math"
 	"mime/multipart"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -30,8 +33,6 @@ const (
 )
 
 const SAVING_IMAGE_SUFFIX = ".jpg"
-
-
 
 func GetIPAddress() (ip []string, err error) {
 	var addrs []net.Addr
@@ -113,4 +114,25 @@ func RerenderImage(fileHandler multipart.File, fileHandlerHeader *multipart.File
 		return "", errors.New("writing thumb file failed: " + err.Error())
 	}
 	return uuidStr + SAVING_IMAGE_SUFFIX, nil
+}
+
+func NumberUnitFormat(number int64, prec int8, unit int, baseUnit int, glue string)(result string, err error){
+	sizeTable := []string{"", "K", "M", "G", "T", "P", "E", "Z", "Y", "B", "N", "D"}
+	count := baseUnit
+	unitf := float64(unit)
+	numberf := float64(number)
+	err = nil
+	for numberf > unitf || -numberf >= unitf{
+		count += 1
+		numberf /= unitf
+	}
+	if count >= len(sizeTable){
+		return "", errors.New("number is too big to show and calculate")
+	}
+	if math.Floor(numberf) == numberf{
+		result = strconv.FormatInt(int64(numberf), 10) + glue + sizeTable[count]
+	}else{
+		result = fmt.Sprintf("%.*f", prec, numberf) + glue + sizeTable[count]
+	}
+	return
 }
