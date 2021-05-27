@@ -122,7 +122,7 @@ func (c *MainController) AddGood() {
 		c.log.Error("[PARAM] name is already exists")
 		c.AjaxSetResult(400, "name is already exists")
 		return
-	}else if err != nil{
+	}else if err != nil && err != orm.ErrNoRows {
 		c.log.Error("[DB] database got an error: " + err.Error())
 		c.AjaxSetResult(500, "database error: " + err.Error())
 		return
@@ -159,7 +159,7 @@ func (c *MainController) AddGood() {
 			return
 		}
 	}else if imageErr != nil{
-		if hasImg != "ok"{
+		if hasImg == "ok"{
 			c.AjaxSetResult(400, "Image was corrupted: " + imageErr.Error())
 			return
 		}
@@ -168,9 +168,26 @@ func (c *MainController) AddGood() {
 		return
 	}
 
+	good := models.Good{
+		Name: name,
+		Desc: desc,
+		Price: pricef,
+		Quantity: quantityi,
+	}
 
+	if imageSaveFilename != ""{
+		good.Image = imageSaveFilename
+	}
 
+	id, err := models.AddGoods(&good)
+	if err != nil {
+		c.log.Error("[AddGoods] Database error: " + err.Error())
+		c.AjaxSetResult(500, "database error: " + err.Error())
+		return
+	}
 
+	c.res.Data["id"] = id
+	c.AjaxSetResult(200, "success")
 	return
 
 	//if name == "" {
