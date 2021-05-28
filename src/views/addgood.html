@@ -204,6 +204,11 @@
             image = $(this).find("[name=image]").get(0).files[0],
             imageOk = typeof(image) === "undefined" ? "null" : "ok",
             formData = new FormData();
+        
+        if(name === ""){
+
+        }
+        
         formData.append("name", name);
         formData.append("desc", desc);
         formData.append("price", price);
@@ -211,10 +216,15 @@
         formData.append("image", image);
         formData.append("hasImg", imageOk);
 
-        console.log(formData);
+        set_enable($(this), false);
 
-        ajax_gen("/api?op=add", formData, function(){console.log("Success.")}, ajax_failed_handler, undefined, this, "post", {processData: false, contentType: false});
-    })
+        ajax_gen("/api?op=add", formData, function(){
+
+        }, ajax_failed_handler, function(){
+            set_enable($(this), true);
+        }, this, "post", {processData: false, contentType: false});
+    });
+    $("")
 </script>
 </body>
 </html>
