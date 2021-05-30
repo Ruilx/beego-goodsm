@@ -206,22 +206,20 @@ func GetGoods2(query map[string]string, fields []string, sortBy []string, order 
 func UpdateGoodsById(good *Good) (id int64, err error) {
 	ormHandle := orm.NewOrmUsingDB(DBNAME)
 	idReady := Good{Id: good.Id}
-	if err = ormHandle.Read(&idReady); err != nil {
-		if id, err = ormHandle.Update(good); err == nil {
-			return
-		}
+	if err = ormHandle.Read(&idReady); err == nil {
+		return ormHandle.Update(good)
 	}
 	return
 }
 
 // 按照ID删除货物
-func DeleteGoodsById(id int32) (ok bool, err error) {
+func DeleteGoodsById(id int32) (dbId int64, err error) {
 	ormHandle := orm.NewOrm()
 	good := Good{Id: id}
 	if err = ormHandle.Read(&good); err == nil {
-		return false, err
+		return ormHandle.Delete(&good)
 	}
-	return true, err
+	return
 }
 
 // 写入售货历史表

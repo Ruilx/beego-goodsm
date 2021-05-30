@@ -14,6 +14,7 @@ import (
 	"mime/multipart"
 	"net"
 	"os"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -135,4 +136,35 @@ func NumberUnitFormat(number int64, prec int8, unit int, baseUnit int, glue stri
 		result = fmt.Sprintf("%.*f", prec, numberf) + glue + sizeTable[count]
 	}
 	return
+}
+
+func Struct2Map(stru interface{}, lowerKey bool)(mp map[string]interface{}, err error){
+	val := reflect.ValueOf(stru)
+	typ := reflect.TypeOf(stru)
+	fieldNum := val.NumField()
+	fieldNum2 := typ.NumField()
+	mp = make(map[string]interface{})
+	if fieldNum != fieldNum2{
+		return nil, errors.New("same struct has not same field size")
+	}
+	for i := 0; i < fieldNum; i++{
+		name := typ.Field(i).Name
+		if lowerKey{
+			name = strings.ToLower(name)
+		}
+		valu := val.Field(i)
+		switch valu.Type().Name(){
+		case "int", "int8", "int16", "int32", "int64", "byte", "rune":
+			mp[name] = valu.Int()
+		case "uint", "uint8", "uint16", "uint32", "uint64":
+			mp[name] = valu.Uint()
+		case "float32", "float64":
+			mp[name] = valu.Float()
+		case "complex64", "complex128":
+			mp[name] = valu.Complex()
+		case "string":
+			mp[name] = valu.String()
+		}
+	}
+	return mp, nil
 }

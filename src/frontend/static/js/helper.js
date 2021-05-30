@@ -87,7 +87,7 @@ function get_string(res_text, length = 100){
 		case "{Empty}":
 			return "{Empty}";
 		case "UNKNOWN":
-			return "{UNKNOWN}"
+			return "{UNKNOWN}";
 		default:
 			return "{Unstructed string}";
 	}
@@ -106,4 +106,9 @@ function ajax_failed_handler(jqXHR, textStatus, errorThrown){
 		"StatusCode: " + jqXHR.status + " " + jqXHR.statusText + "<br>" +
 		"Response: " + get_string(jqXHR.responseText) + "");
 	set_enable($(this), true);
+}
+function ajax_failed_handler_to_console(jqXHR, textStatus, errorThown){
+	console.log("服务器连接失败, 请联系管理员, 可提供以下信息.<br>" +
+		"StatusCode: " + jqXHR.status + " " + jqXHR.statusText + "<br>" +
+		"Response: " + get_string(jqXHR.responseText) + "");
 }

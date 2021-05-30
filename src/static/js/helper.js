@@ -8,7 +8,7 @@ function ajax_gen(url, data1, success, error, logical_failed = undefined, contex
 		success: function(ret_data, textStatus, jqXHR){
 			let ret = undefined;
 			if(typeof(textStatus) === "string" && textStatus === "success"){
-				if(typeof(ret_data) == "object" && ret_data.status === 0){
+				if(typeof(ret_data) == "object" && ret_data.code === 200){
 					if(typeof(success) == "function"){
 						ret = success(ret_data, textStatus, jqXHR);
 					}else{
@@ -51,6 +51,17 @@ function set_enable(form_jd, bool){
 		form_jd.find(".back").removeClass("d-none");
 		form_jd.find(".spinner-border").addClass("d-none");
 		form_jd.find(".close").removeClass("d-none");
+	}
+}
+function set_loading_mask(loadingdom, bool){
+	if(!bool){
+		if(!loadingdom.hasClass("d-none")) {
+			loadingdom.addClass("d-none");
+		}
+	}else{
+		if(loadingdom.hasClass("d-none")){
+			loadingdom.removeClass("d-none");
+		}
 	}
 }
 function get_type(res_text){
@@ -110,4 +121,9 @@ function ajax_failed_handler(jqXHR, textStatus, errorThrown){
 		"StatusCode: " + jqXHR.status + " " + jqXHR.statusText + "<br>" +
 		"Response: " + get_string(jqXHR.responseText) + "");
 	set_enable($(this), true);
+}
+function ajax_failed_handler_to_console(jqXHR, textStatus, errorThown){
+	console.log("服务器连接失败, 请联系管理员, 可提供以下信息.<br>" +
+		"StatusCode: " + jqXHR.status + " " + jqXHR.statusText + "<br>" +
+		"Response: " + get_string(jqXHR.responseText) + "");
 }

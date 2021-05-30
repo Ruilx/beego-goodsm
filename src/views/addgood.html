@@ -7,6 +7,29 @@
     <meta http-equiv="Cache-Control" content="no-transform">
     <meta http-equiv="Cache-Control" content="no-siteapp">
     <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .cover-panel{
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            background-color: rgba(255, 255, 255, 0.7);
+            transition: background-color 0.3s ;
+            overflow: hidden;
+        }
+        .cover-panel .spin-bg{
+            width: 100%;
+            height: 100%;
+        }
+        .cover-panel .spinner-border {
+            width: 5rem;
+            height: 5rem;
+            border-width: 5px;
+            margin: auto;
+        }
+    </style>
 </head>
 <body style="background-color: #E0E0E0">
 <nav class="navbar navbar-expand-lg sticky-top navbar-light bg-light">
@@ -54,40 +77,53 @@
         <div class="col">
             <div class="card mb-3">
                 <div class="card-header">
-                    添加货物
+                    {{if .id}}编辑货品{{else}}添加货品{{end}}
                 </div>
                 <div class="card-body">
-                    <h3 class="card-title">请填写新增的货品的信息, 如果名称与库存中名称相同的话, 则以库存为标准做进货操作, 请注意</h3>
+                    <h3 class="card-title" id="infotip">
+                        {{if .id}}
+                        请更改货品的信息, 完成后点击"更新信息"来保存. 请注意, 此修改并不能改变已售出的历史记录中的信息.
+                        {{else}}
+                        请填写新增的货品的信息, 如果名称与库存中名称相同的话, 则以库存为标准做进货操作, 请注意
+                        {{end}}
+                    </h3>
                 </div>
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item">
+                        <div class="cover-panel d-none" id="good-loading-mask">
+                            <div class="d-flex justify-content-center spin-bg">
+                                <div class="spinner-border" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
                         <form id="add-good">
                             <div class="form-group row d-none">
                                 <label for="goods_id" class="col-sm-2 d-none d-sm-block col-xs-12 col-form-label text-right">ID</label>
                                 <label for="goods_id" class="col-sm-2 d-sm-none col-xs-12 col-form-label">ID</label>
                                 <div class="col-sm-10 col-xs-12">
-                                    <input type="text" readonly class="form-control-plaintext" id="goods_id" value="新增货品">
+                                    <input type="text" readonly class="form-control-plaintext" id="goods_id" value="{{if .id}}{{.id}}{{else}}新增货品{{end}}">
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label for="name" class="col-sm-2 d-none d-sm-block col-form-label col-form-label-lg text-right"><span class="badge badge-danger">必填</span>货品名称:</label>
                                 <label for="name" class="col-sm-2 d-sm-none col-form-label col-form-label-lg">货品名称:<span class="badge badge-danger float-right">必填</span></label>
                                 <div class="col-sm-10 col-xs-12">
-                                    <input type="text" class="form-control form-control-lg" id="name" name="name" placeholder="简短的货品名称, 15字以内, 所有相同货品名称以此为准" required>
+                                    <input type="text" class="form-control form-control-lg" id="name" name="name" value="{{if .name}}{{.name}}{{end}}" placeholder="简短的货品名称, 15字以内, 所有相同货品名称以此为准" required>
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label for="desc" class="col-sm-2 d-none d-sm-block col-xs-12 col-form-label text-right">货品描述:</label>
                                 <label for="desc" class="col-sm-2 d-sm-none col-xs-12 col-form-label">货品描述:</label>
                                 <div class="col-sm-10 col-xs-12">
-                                    <textarea rows="3" class="form-control" id="desc" name="desc" placeholder="货品的描述, 对货品具体的批次, 样式等进行描述, 500字以内, 如库中已有相应物品, 则该描述被已存在的覆盖"></textarea>
+                                    <textarea rows="3" class="form-control" id="desc" name="desc" placeholder="货品的描述, 对货品具体的批次, 样式等进行描述, 500字以内, 如库中已有相应物品, 则该描述被已存在的覆盖">{{if .desc}}{{.desc}}{{end}}</textarea>
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label for="price" class="col-sm-2 d-none d-sm-block col-xs-12 col-form-label text-right"><span class="badge badge-danger">必填</span>单价:</label>
                                 <label for="price" class="col-sm-2 d-sm-none col-xs-12 col-form-label">单价:<span class="badge badge-danger float-right">必填</span></label>
                                 <div class="col-sm-10 col-xs-12">
-                                    <input type="number" class="form-control" id="price" name="price" placeholder="填写物品定价" required>
+                                    <input type="number" class="form-control" id="price" name="price" value="{{if .price}}{{.price}}{{end}}" placeholder="填写物品定价" required>
                                 </div>
                                 <div class="col-sm-12">
                                     <small class="form-text text-muted float-right">单价: 必填, 请填写货品单价, 数字, 精确到小数点2位</small>
@@ -97,7 +133,7 @@
                                 <label for="quantity" class="col-sm-2 d-none d-sm-block col-xs-12 col-form-label text-right"><span class="badge badge-danger">必填</span>库存:</label>
                                 <label for="quantity" class="col-sm-2 d-sm-none col-xs-12 col-form-label">库存:<span class="badge badge-danger float-right">必填</span></label>
                                 <div class="col-sm-10 col-xs-12">
-                                    <input type="number" class="form-control" id="quantity" name="quantity" placeholder="填写现行库存" required>
+                                    <input type="number" class="form-control" id="quantity" name="quantity" value="{{if .quantity}}{{.quantity}}{{end}}" placeholder="填写现行库存" required>
                                 </div>
                                 <div class="col-sm-12">
                                     <small class="form-text text-muted float-right">库存: 必填, 请填写库存, 整数</small>
@@ -109,11 +145,17 @@
                                 <div class="col-sm-10 col-xs-12">
                                     <input type="file" class="form-control-file" id="image" name="image">
                                 </div>
-                                <div class="invalid-feedback">上传的内容及信息</div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-2 d-none d-sm-block col-xs-12 col-form-label text-right" for="image">当前照片</label>
+                                <label class="col-sm-2 d-sm-none col-xs-12 col-form-label" for="image">当前照片</label>
+                                <div class="col-sm-10 col-xs-12">
+                                    <img src="{{if .image}}/static/upload/thumb/{{.image}}{{else}}/static/image/nopre.png{{end}}" class="img-thumbnail" id="image_now" name="image_now">
+                                </div>
                             </div>
                             <div class="form-group row">
                                 <div class="col-sm-12 col-xs-12">
-                                    <button type="submit" class="btn btn-primary">增加货品</button>
+                                    <button type="submit" class="btn btn-primary">{{if .id}}更新信息{{else}}增加货品{{end}}</button>
                                 </div>
                             </div>
                         </form>
@@ -135,9 +177,67 @@
                     <div class="btn-group" role="group">
                         <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal_for_success">添加成功模态框</button>
                         <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modal_for_failed">添加失败模态框</button>
+                        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modal_for_exists">货品存在模态框</button>
                         <button type="button" class="btn btn-secondary">其他...</button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for exists -->
+<div class="modal fade" id="modal_for_exists" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">已存在对应货品</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                发现库存中有同名货品, 信息如下:
+                <div class="form-group row">
+                    <label for="goods_id_modal" class="col-sm-2 d-none d-sm-block col-xs-12 col-form-label text-right">ID</label>
+                    <label for="goods_id_modal" class="col-sm-2 d-sm-none col-xs-12 col-form-label">ID</label>
+                    <div class="col-sm-10 col-xs-12">
+                        <input type="text" readonly class="form-control-plaintext" id="goods_id_modal" value="GOOD_ID">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="name_modal" class="col-sm-2 d-none d-sm-block col-form-label col-form-label text-right">货品名称:</label>
+                    <label for="name_modal" class="col-sm-2 d-sm-none col-form-label col-form-label">货品名称:</label>
+                    <div class="col-sm-10 col-xs-12">
+                        <input type="text" class="form-control form-control" id="name_modal" name="name" readonly>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="desc_modal" class="col-sm-2 d-none d-sm-block col-xs-12 col-form-label text-right">货品描述:</label>
+                    <label for="desc_modal" class="col-sm-2 d-sm-none col-xs-12 col-form-label">货品描述:</label>
+                    <div class="col-sm-10 col-xs-12">
+                        <textarea rows="3" class="form-control" id="desc_modal" name="desc" readonly></textarea>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="price_modal" class="col-sm-2 d-none d-sm-block col-xs-12 col-form-label text-right">单价:</label>
+                    <label for="price_modal" class="col-sm-2 d-sm-none col-xs-12 col-form-label">单价:</label>
+                    <div class="col-sm-10 col-xs-12">
+                        <input type="number" class="form-control" id="price_modal" name="price" readonly>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="quantity_modal" class="col-sm-2 d-none d-sm-block col-xs-12 col-form-label text-right">库存:</label>
+                    <label for="quantity_modal" class="col-sm-2 d-sm-none col-xs-12 col-form-label">库存:</label>
+                    <div class="col-sm-10 col-xs-12">
+                        <input type="number" class="form-control" id="quantity_modal" name="quantity" readonly>
+                    </div>
+                </div>
+                相同名称的货品可以选择对货品进行编辑, 或者换一个名字新增货品.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="to_edit_btn">编辑此货品</button>
+                <button type="button" class="btn btn-primary" id="to_reset_btn" data-dismiss="modal">重新填写货品名</button>
             </div>
         </div>
     </div>
@@ -157,8 +257,8 @@
                 此货品已添加成功, 是否继续添加下一件货品?
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary">返回主页</button>
-                <button type="button" class="btn btn-primary" data-dismiss="modal">继续添加</button>
+                <button type="button" class="btn btn-secondary" id="to_home">返回主页</button>
+                <button type="button" class="btn btn-primary" id="to_next" data-dismiss="modal">继续添加</button>
             </div>
         </div>
     </div>
@@ -195,20 +295,49 @@
 <script src="static/js/helper.js"></script>
 <script type="text/javascript">
     "use strict";
+    let updateInfoTip = function(info, cls){
+        let infotipDom = $("#infotip");
+        if (!infotipDom.hasClass(cls)){
+            infotipDom.addClass(cls);
+        }
+        infotipDom.html(info);
+    };
     $("#add-good").submit(function(e){
         e.preventDefault();
-        let name = $(this).find("[name=name]").val(),
-            desc = $(this).find("[name=desc]").val(),
+        let id = $(this).find("#goods_id").val(),
+            name = $(this).find("[name=name]").val().trim(),
+            desc = $(this).find("[name=desc]").val().trim(),
             price = $(this).find("[name=price]").val(),
             quantity = $(this).find("[name=quantity]").val(),
             image = $(this).find("[name=image]").get(0).files[0],
             imageOk = typeof(image) === "undefined" ? "null" : "ok",
+            loadingMask = $("#good-loading-mask"),
+            action = "/api?op=add",
             formData = new FormData();
         
         if(name === ""){
-
+            updateInfoTip("请输入货品名称", "text-danger");
+            return;
         }
-        
+        if(price === ""){
+            updateInfoTip("请输入货品价格", "text-danger");
+            return;
+        }else if(parseFloat(price) != price){
+            updateInfoTip("请输入正确的货品价格", "text-danger")
+            return;
+        }
+        if(quantity === ""){
+            updateInfoTip("请输入库存", "text-danger");
+            return;
+        }else if(parseInt(quantity) != quantity){
+            updateInfoTip("请输入正确的库存量", "text-danger");
+            return;
+        }
+        if(parseInt(id) == id){
+            formData.append("id", id);
+            action = "/api?op=upd"
+        }
+
         formData.append("name", name);
         formData.append("desc", desc);
         formData.append("price", price);
@@ -216,15 +345,100 @@
         formData.append("image", image);
         formData.append("hasImg", imageOk);
 
-        set_enable($(this), false);
+        set_loading_mask(loadingMask, true);
 
-        ajax_gen("/api?op=add", formData, function(){
-
+        ajax_gen(action, formData, function(){
+            set_loading_mask(loadingMask, false);
+            let id = $("#goods_id"),
+                modal_for_success = $("#modal_for_success");
+            if (parseInt(id) == id){
+                window.location.reload();
+                return;
+            }
+            modal_for_success.modal({
+                backdrop: "static",
+                focus: true,
+                show: true
+            });
         }, ajax_failed_handler, function(){
-            set_enable($(this), true);
+            set_loading_mask(loadingMask, false);
         }, this, "post", {processData: false, contentType: false});
     });
-    $("")
+    $("#name").change(function(){
+        let name = $(this).val().trim(),
+            form = $("#add-good"),
+            loadingMask = $("#good-loading-mask"),
+            id = form.find("#goods_id_modal");
+        const name1 = $(this).val().trim();
+        if(parseInt(id) == id){
+            // edit mode id is not a string.
+            return;
+        }
+        if(name === ""){
+            return;
+        }
+        set_loading_mask(loadingMask, true);
+
+        ajax_gen("/api?op=get", {name: name}, function(res_data, textStatus, jqXHR){
+            if (typeof(res_data.data) != "object"){
+                set_loading_mask(loadingMask, false);
+                console.warn("parse data failed:" + res_data.data);
+                return;
+            }
+            if(typeof(res_data.data["goods"]) !== "object"){
+                set_loading_mask(loadingMask, false);
+                console.warn("parse data.goods failed:" + res_data.data);
+                return;
+            }
+            if(res_data.data["goods"].length <= 0){
+                set_loading_mask(loadingMask, false);
+                console.warn("not found " + name1 + " on server goods registration.")
+                return;
+            }
+            let modal = $("#modal_for_exists"),
+                id = modal.find("#goods_id_modal"),
+                name = modal.find("#name_modal"),
+                desc = modal.find("#desc_modal"),
+                price = modal.find("#price_modal"),
+                quantity = modal.find("#quantity_modal"),
+                res_good = res_data.data["goods"][0];
+            id.val(res_good.id);
+            name.val(res_good.name);
+            desc.val(res_good.desc);
+            price.val(res_good.price);
+            quantity.val(res_good.price);
+            modal.modal({
+                backdrop: "static",
+                focus: true,
+                show: true
+            });
+            set_loading_mask(loadingMask, false);
+            let nameJdom = $("#name");
+            nameJdom.val(nameJdom.val().trim() + "(请输入一个新货品名)");
+        }, ajax_failed_handler_to_console, function(){
+            set_loading_mask(loadingMask, false);
+        }, this, "post");
+    });
+    $("#to_edit_btn").click(function(){
+        let modal = $(this).parents(".modal"),
+            id = modal.find("#goods_id_modal").val();
+        if(parseInt(id) == id && id > 0){
+            window.location.href = "/add?id=" + id;
+        }
+    });
+    $("#to_reset_btn").click(function(){
+        let modal = $(this).parents(".modal"),
+            name = $("#name"),
+            loading_mask = $("#good-loading-mask");
+        set_loading_mask(loading_mask, false);
+        modal.modal("hide");
+    });
+    $("#to_home").click(function(){
+        window.location.href = "/";
+    });
+    $("#to_next").click(function(){
+        window.location.href = "/add";
+    });
 </script>
 </body>
 </html>
