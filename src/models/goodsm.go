@@ -49,16 +49,16 @@ type Good struct {
 }
 
 type History struct {
-	Id         int64     `orm:"column(id); auto; pk"`
-	Event      string    `orm:"column(event); size(64);"`
-	GoodId     int32     `orm:"column(good_id)"`
-	GoodName   string    `orm:"column(good_name); size(32)"`
-	GoodDesc   string    `orm:"column(good_desc); type(text); null"`
-	GoodPrice  float64   `orm:"column(good_price); default(0)"`
-	GoodImage  string    `orm:"column(good_image); default()"`
-	Remark     string    `orm:"column(remark); type(text); null"`
-	Status     int8      `orm:"column(status); default(1)"`
-	CreateTime time.Time `orm:"column(create_time); auto_now_add; type(datetime)"`
+	Id         int64     `orm:"column(id); auto; pk"`                              // 记录ID
+	Event      string    `orm:"column(event); size(64);"`                          // 记录事件名
+	GoodId     int32     `orm:"column(good_id)"`                                   // 货品ID
+	GoodName   string    `orm:"column(good_name); size(32)"`                       // 货品名称快照
+	GoodDesc   string    `orm:"column(good_desc); type(text); null"`               // 货品描述快照
+	GoodPrice  float64   `orm:"column(good_price); default(0)"`                    // 货品价格快照
+	GoodImage  string    `orm:"column(good_image); default()"`                     // 货品图片快照
+	Remark     string    `orm:"column(remark); type(text); null"`                  // 备注
+	Status     int8      `orm:"column(status); default(1)"`                        // 状态
+	CreateTime time.Time `orm:"column(create_time); auto_now_add; type(datetime)"` // 创建时间
 }
 
 func init() {

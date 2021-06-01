@@ -4,6 +4,9 @@
 bin/*
 pkg/*
 
+# for MAC
+.DS_Store
+
 *.tmp
 *.db
 goodsm.db

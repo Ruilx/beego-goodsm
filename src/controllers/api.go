@@ -4,10 +4,11 @@ import (
 	"beego-goodsm/common"
 	"beego-goodsm/models"
 	"fmt"
+	"strconv"
+
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/beego/beego/v2/core/logs"
 	beego "github.com/beego/beego/v2/server/web"
-	"strconv"
 )
 
 type ResJson struct {
@@ -63,6 +64,7 @@ func (c *MainController) Post() {
 		c.UpdGood()
 	case "del": // Delete Good
 	case "sel": // Sell Good
+		c.SellGood()
 	case "get": // Get Goods
 		c.GetGoods()
 		break
@@ -320,4 +322,80 @@ func (c *MainController) UpdGood(){
 	c.res.Data["id"] = insertId
 	c.AjaxSetResult(200, "success")
 	return
+}
+
+func (c *MainController)SellGood(){
+	id := c.Ctx.Input.Query("id") // ID
+	quantity := c.Ctx.Input.Query("quantity") // sell quantity
+	price := c.Ctx.Input.Query("price") // sell price
+	remark := c.Ctx.Input.Query("remark") // remark
+	unitPrice := c.Ctx.Input.Query("unit_price") // unit price
+
+	var err error
+	var idi int
+	var quantityi int64
+	var pricef float64
+	var unitPricef float64
+
+	c.log.Info("Enrty SellGood operation.")
+	c.log.Info("[PARAM] id = ", id)
+	c.log.Info("[PARAM] quantity = ", quantity)
+	c.log.Info("[PARAM] price = ", price)
+	c.log.Info("[PARAM] remark = ", remark)
+	c.log.Info("[PARAM] unitPrice = ", unitPrice)
+
+	if idi, err = strconv.Atoi(id); err != nil{
+		c.log.Error("cannot parse id to int: ", err.Error())
+		c.AjaxSetResult(400, "param error")
+		return
+	}
+	if idi <= 0{
+		c.log.Error("not an valid id: ", strconv.Itoa(idi))
+		c.AjaxSetResult(400, "param error")
+		return
+	}
+	if quantityi, err = strconv.ParseInt(quantity, 10, 64); err != nil{
+		c.log.Error("cannot parse quantity to int: ", err.Error())
+		c.AjaxSetResult(400, "param error")
+		return
+	}
+	if pricef, err = strconv.ParseFloat(price, 64); err != nil{
+		c.log.Error("cannot parse price to float64: ", err.Error())
+		c.AjaxSetResult(400, "param error")
+		return
+	}
+	if unitPricef, err = strconv.ParseFloat(unitPrice, 64); err != nil{
+		c.log.Error("cannot parse unit_price to float64: ", err.Error())
+		c.AjaxSetResult(400, "param error")
+		return
+	}
+
+	thisGood, err := models.GetGoodsById(int32(idi))
+	if err != nil{
+		c.log.Error("[Sell Good] db error: ", err.Error())
+		c.AjaxSetResult(500, "database error: " + err.Error())
+		return
+	}
+
+	if thisGood.Price != unitPricef{
+		c.log.Error("sent request unit_price is not equal to current price.")
+		c.log.Error("CurrentUnitPrice: ", thisGood.Price, "; sent Price: ", unitPricef)
+		c.AjaxSetResult(400, "the current unit price is changed recently, please resend this request.")
+		return
+	}
+	if pricef == 0.0{
+		c.log.Info("[Sell Good] Sell good for free:" + thisGood.Name + " x" + quantity)
+	}
+	if thisGood.Quantity <= 0{
+		c.log.Error("cannot sell goods while has no or negative storage: ", thisGood.Quantity)
+		c.AjaxSetResult(403, "cannot sell goods while has no or negative storage: " + strconv.FormatInt(thisGood.Quantity, 10))
+		return
+	}
+
+	balance := thisGood.Quantity - quantityi
+	if balance 
+
+
+	
+
 }
