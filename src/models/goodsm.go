@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
@@ -56,7 +57,10 @@ type History struct {
 	GoodDesc   string    `orm:"column(good_desc); type(text); null"`               // 货品描述快照
 	GoodPrice  float64   `orm:"column(good_price); default(0)"`                    // 货品价格快照
 	GoodImage  string    `orm:"column(good_image); default()"`                     // 货品图片快照
+	Quantity   int64     `orm:"column(quantity);"`                                 // 数量
+	Money      float64   `orm:"column(money);"`                                    // 金额
 	Remark     string    `orm:"column(remark); type(text); null"`                  // 备注
+	Info       string    `orm:"column(info); default()"`                           // 信息
 	Status     int8      `orm:"column(status); default(1)"`                        // 状态
 	CreateTime time.Time `orm:"column(create_time); auto_now_add; type(datetime)"` // 创建时间
 }
@@ -203,11 +207,11 @@ func GetGoods2(query map[string]string, fields []string, sortBy []string, order 
 }
 
 // 按照ID更新货物 ID写至good.Id
-func UpdateGoodsById(good *Good) (id int64, err error) {
+func UpdateGoodsById(good *Good, col ...string) (id int64, err error) {
 	ormHandle := orm.NewOrmUsingDB(DBNAME)
 	idReady := Good{Id: good.Id}
 	if err = ormHandle.Read(&idReady); err == nil {
-		return ormHandle.Update(good)
+		return ormHandle.Update(good, col ...)
 	}
 	return
 }
@@ -223,10 +227,27 @@ func DeleteGoodsById(id int32) (dbId int64, err error) {
 }
 
 // 写入售货历史表
-func AddSellsHistory(his *History) (id int64, err error) {
+func AddHistory(his *History) (id int64, err error) {
 	ormHandle := orm.NewOrmUsingDB(DBNAME)
 	id, err = ormHandle.Insert(his)
 	return
+}
+
+func AddSellsHistory(good *Good, quantity int64, unitPrice float64, money float64, remark string, balance int64)(id int64, err error){
+	his := History{
+		Event: EVENT_SELL,
+		GoodId: good.Id,
+		GoodName: good.Name,
+		GoodDesc: good.Desc,
+		GoodPrice: good.Price,
+		GoodImage: good.Image,
+		Quantity: quantity,
+		Money: money,
+		Remark: remark,
+		Info: "[出售]: 卖出【" + good.Name + "】，数量【" + strconv.FormatInt(quantity, 10) + "】，单价【" + strconv.FormatFloat(unitPrice, 'f', 2, 64) + "】，总价【" + strconv.FormatFloat(money, 'f', 2, 64,) + "】，剩余库存【" + strconv.FormatInt(balance, 10) + "】。",
+		Status: 1,
+	}
+	return AddHistory(&his)
 }
 
 // 读取售货历史表

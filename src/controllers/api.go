@@ -393,9 +393,38 @@ func (c *MainController)SellGood(){
 	}
 
 	balance := thisGood.Quantity - quantityi
-	if balance 
+	if balance < 0{
+		c.log.Info("[Sell Good] sold to negative balance")
+	}
 
+	balancedGood := models.Good{
+		Id: thisGood.Id,
+		Quantity: balance,
+	}
 
-	
+	var resultId int64
+	var resultHisId int64
+	if resultId, err = models.UpdateGoodsById(&balancedGood, "Quantity"); err != nil{
+		c.log.Error("cannot update good balance, db error: " + err.Error())
+		c.AjaxSetResult(500, "cannot update good balance, db error: " + err.Error())
+		return
+	}
 
+	// writing sell history
+	tryTimes := 5
+	i := 0
+	for i = 0; i < tryTimes; i++{
+		if resultHisId, err = models.AddSellsHistory(thisGood, quantityi, unitPricef, float64(quantityi) * unitPricef, remark, balance); err == nil{
+			break
+		}
+	}
+	if i >= tryTimes && err != nil{
+		c.log.Error("cannot insert good history, db error: " + err.Error())
+		c.AjaxSetResult(500, "cannot insert good history, db error: " + err.Error())
+	}
+
+	c.res.Data["result_id"] = resultId
+	c.res.Data["result_his_id"] = resultHisId
+	c.AjaxSetResult(200, "success")
+	return
 }

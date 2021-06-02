@@ -540,7 +540,7 @@
                             after_inventory = good_export_modal.find(".after_quantity"),
                             inventory_int = parseInt(inventory),
                             quantity_int = parseInt(quantity);
-                    after_inventory.removeClass("text-danger")
+                    after_inventory.removeClass("text-danger");
                     if(inventory == inventory_int && quantity == quantity_int){
                         if(quantity_int <= 0){
                             after_inventory.html("撤柜数量应大于零");
@@ -750,7 +750,7 @@
                 return;
             }
             if(parseInt(good_quantity) != good_quantity || parseInt(good_quantity) <= 0){
-                alert_msg(good_import_modal, "请确认售出数量.");
+                alert_msg(good_import_modal, "请确认进货数量.");
                 return;
             }
             inventory_change();
@@ -793,10 +793,12 @@
                 alert_msg(good_sell_modal, "请确认售出数量.");
                 return;
             }
+            good_quantity = parseInt(good_quantity);
             if(parseFloat(good_price) != good_price || parseFloat(good_price) < 0){
                 alert_msg(good_sell_modal, "请确认出售价格.");
                 return;
             }
+            good_price = parseFloat(good_price);
             if(parseFloat(good_price) === 0 && good_sell_modal.data("free_sell") !== "1"){
                 alert_msg(good_sell_modal, "请确认是否免费出售, 若确为免费出售, 请再次点击确定收货, 将免费售出此物品.");
                 good_sell_modal.data("free_sell", "1");
@@ -811,7 +813,8 @@
             set_enable(good_sell_modal, false);
             let ajax_handle = ajax_gen("/api", req_param, function(res_data, textStatus, jqXHR){
                 let data = res_data.data;
-                if(data === "success"){
+                //if(typeof(data.result_id) !== "undefined" && data.result_id == good_id){
+                if(typeof(res_data.msg) !== "undefined" && res_data.msg === "success"){
                     good_sell_modal.modal("hide");
                     location.reload();
                     return;

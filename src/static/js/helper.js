@@ -65,6 +65,12 @@ function set_loading_mask(loadingdom, bool){
 	}
 }
 function get_type(res_text){
+	switch(typeof(res_text)){
+		case "undefined": return "undefined";
+		case "number": return "number(" + res_text + ")";
+		case "object": return res_text.toString();
+		case "function": return "javascript function";
+	}
 	if(typeof(res_text) !== "string"){
 		return "{Empty}";
 	}
