@@ -250,6 +250,59 @@ func AddSellsHistory(good *Good, quantity int64, unitPrice float64, money float6
 	return AddHistory(&his)
 }
 
+func AddImportHistory(good *Good, quantity int64, remark string, balance int64)(id int64, err error){
+	money := good.Price * float64(quantity) // 进货物品所产生的定价价值
+	his := History{
+		Event: EVENT_IMPORT,
+		GoodId: good.Id,
+		GoodName: good.Name,
+		GoodDesc: good.Desc,
+		GoodPrice: good.Price,
+		GoodImage: good.Image,
+		Quantity: quantity,
+		Money: money,
+		Remark: remark,
+		Info: "[进货]: 进货【" + good.Name + "】，数量【" + strconv.FormatInt(quantity, 10) + "】，库存【" + strconv.FormatInt(good.Quantity, 10) + "】，总价【" + strconv.FormatFloat(money, 'f', 2, 64) + "】，当前库存【" + strconv.FormatInt(balance, 10) + "】。",
+		Status: 1,
+	}
+	return AddHistory(&his)
+}
+
+func AddExportHistory(good *Good, quantity int64, remark string, balance int64)(id int64, err error){
+	money := good.Price * float64(quantity)
+	his := History{
+		Event: EVENT_EXPORT,
+		GoodId: good.id,
+		GoodName: good.Name,
+		GoodDesc: good.Desc,
+		GoodPrice: good.Price,
+		GoodImage: good.Image,
+		Quantity: quantity,
+		Money: money,
+		Remark: remark,
+		Info: "[撤柜]: 撤柜【" + good.Name + "】，数量【" + strconv.FormatInt(quantity, 10) + "】，库存【" + strconv.FormatInt(good.Quantity, 10) + "】，总价【" + strconv.FormatFloat(money, 'f', 2, 64) + "】，当前库存【" + strconv.FormatInt(balance, 10) + "】。",
+		Status: 1,
+	}
+	return AddHistory(&his)
+}
+
+func AddDeleteHistory(good *Good, remark string)(id int64, err error){
+	his := History{
+		Event: EVENT_DELETE,
+		GoodId: Good.Id,
+		GoodName: Good.Name,
+		GoodDesc: Good.Desc,
+		GoodPrice: Good.Price,
+		GoodImage: Good.Image,
+		Quantity: Good.Quantity,
+		Money: float64(Good.Quantity) * Good.Price,
+		Remark: remark,
+		Info: "[删除]: 删除【" + good.Name + "】，删前库存【" + strconv.FormatInt(Good.Quantity, 10) + "】。"
+		Status: 1,
+	}
+	return AddHistory(&his)
+}
+
 // 读取售货历史表
 func getSellsHistory(startTime time.Time, endTime time.Time, name string, order int) (mh []History, err error) {
 	ormHandle := orm.NewOrmUsingDB(DBNAME)
