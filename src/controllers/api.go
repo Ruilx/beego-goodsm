@@ -59,7 +59,6 @@ func (c *MainController) Post() {
 	switch op {
 	case "add": // Add Good
 		c.AddGood()
-		break
 	case "upd": // Update Good
 		c.UpdGood()
 	case "del": // Delete Good
@@ -67,7 +66,9 @@ func (c *MainController) Post() {
 		c.SellGood()
 	case "get": // Get Goods
 		c.GetGoods()
-		break
+	case "imp": // Import Goods
+		c.ImportGood()
+	case "exp": // Export Goods
 	default:
 		c.res.Msg = "Not a valid operation"
 	}
@@ -82,16 +83,16 @@ func (c *MainController) GetGoods() {
 
 	var goods []models.Good
 	var err error
-	if goods, err = models.GetGoods(name, models.ORDERBY_ASC); err != nil{
+	if goods, err = models.GetGoods(name, models.ORDERBY_ASC); err != nil {
 		c.AjaxSetResult(500, err.Error())
 	}
 	fmt.Println(goods)
 
-	if name != ""{
-		if len(goods) > 0{
+	if name != "" {
+		if len(goods) > 0 {
 			var mp map[string]interface{}
 			good := goods[0]
-			if mp, err = common.Struct2Map(good, true); err != nil{
+			if mp, err = common.Struct2Map(good, true); err != nil {
 				c.AjaxSetResult(500, err.Error())
 				return
 			}
@@ -102,7 +103,7 @@ func (c *MainController) GetGoods() {
 			c.res.Data = result
 			c.AjaxSetResult(200, "success")
 			return
-		}else{
+		} else {
 			result := make(map[string]interface{})
 			goodsMap := make([]map[string]interface{}, 0)
 			result["goods"] = goodsMap
@@ -110,11 +111,11 @@ func (c *MainController) GetGoods() {
 			c.AjaxSetResult(200, "success, no result")
 		}
 
-	}else{
+	} else {
 		var goodsResult []map[string]interface{}
-		for _, v := range goods{
+		for _, v := range goods {
 			var good map[string]interface{}
-			if good, err = common.Struct2Map(v, true); err != nil{
+			if good, err = common.Struct2Map(v, true); err != nil {
 				c.log.Warn("One good parse failed: " + v.Name + ", error: " + err.Error())
 				continue
 			}
@@ -126,7 +127,6 @@ func (c *MainController) GetGoods() {
 		c.AjaxSetResult(200, "success")
 		return
 	}
-
 
 }
 
@@ -142,24 +142,24 @@ func (c *MainController) AddGood() {
 	c.log.Info("Entry AddGood operation.")
 	c.log.Info("PARAM: name = '" + name + "'")
 	c.log.Info("PARAM: desc = '" + desc + "'")
-	c.log.Info("PARAM: price = '" + price + "'" )
+	c.log.Info("PARAM: price = '" + price + "'")
 	c.log.Info("PARAM: quantity = '" + quantity + "'")
 	c.log.Info("PARAM: hasImg = '" + hasImg + "'")
 
-	if name == ""{
+	if name == "" {
 		c.log.Error("[PARAM] received name is empty")
 		c.AjaxSetResult(400, "param error")
 		return
 	}
 
 	_, err := models.GetGoodsByName(name)
-	if err != orm.ErrNoRows{
+	if err != orm.ErrNoRows {
 		c.log.Error("[PARAM] name is already exists")
 		c.AjaxSetResult(400, "name is already exists")
 		return
-	}else if err != nil && err != orm.ErrNoRows {
+	} else if err != nil && err != orm.ErrNoRows {
 		c.log.Error("[DB] database got an error: " + err.Error())
-		c.AjaxSetResult(500, "database error: " + err.Error())
+		c.AjaxSetResult(500, "database error: "+err.Error())
 		return
 	}
 
@@ -176,9 +176,9 @@ func (c *MainController) AddGood() {
 		return
 	}
 
-	if imageFile != nil{
+	if imageFile != nil {
 		defer imageFile.Close()
-		if imageHeader == nil{
+		if imageHeader == nil {
 			c.log.Error("imageHeader is nil when imageFile is not nil")
 			c.AjaxSetResult(500, "imageHeader is nil when imageFile is not nil")
 			return
@@ -189,35 +189,35 @@ func (c *MainController) AddGood() {
 		}
 		c.log.Info("PARAM: image = ['" + imageHeader.Filename + "', '" + sizeFormat + "', '" + imageHeader.Header.Get(common.MINE_CONTENT_TYPE) + "'")
 		imageSaveFilename, err = common.RerenderImage(imageFile, imageHeader)
-		if err != nil{
-			c.AjaxSetResult(400, "Image rerender failed: " + err.Error())
+		if err != nil {
+			c.AjaxSetResult(400, "Image rerender failed: "+err.Error())
 			return
 		}
-	}else if imageErr != nil{
-		if hasImg == "ok"{
-			c.AjaxSetResult(400, "Image was corrupted: " + imageErr.Error())
+	} else if imageErr != nil {
+		if hasImg == "ok" {
+			c.AjaxSetResult(400, "Image was corrupted: "+imageErr.Error())
 			return
 		}
-	}else{
+	} else {
 		c.AjaxSetResult(400, "Image upload parse failed.")
 		return
 	}
 
 	good := models.Good{
-		Name: name,
-		Desc: desc,
-		Price: pricef,
+		Name:     name,
+		Desc:     desc,
+		Price:    pricef,
 		Quantity: quantityi,
 	}
 
-	if imageSaveFilename != ""{
+	if imageSaveFilename != "" {
 		good.Image = imageSaveFilename
 	}
 
 	id, err := models.AddGoods(&good)
 	if err != nil {
 		c.log.Error("[AddGoods] Database error: " + err.Error())
-		c.AjaxSetResult(500, "database error: " + err.Error())
+		c.AjaxSetResult(500, "database error: "+err.Error())
 		return
 	}
 
@@ -226,7 +226,7 @@ func (c *MainController) AddGood() {
 	return
 }
 
-func (c *MainController) UpdGood(){
+func (c *MainController) UpdGood() {
 	id := c.Ctx.Input.Query("id")
 	name := c.Ctx.Input.Query("name")
 	desc := c.Ctx.Input.Query("desc")
@@ -239,22 +239,22 @@ func (c *MainController) UpdGood(){
 	c.log.Info("Entry AddGood operation.")
 	c.log.Info("PARAM: name = '" + name + "'")
 	c.log.Info("PARAM: desc = '" + desc + "'")
-	c.log.Info("PARAM: price = '" + price + "'" )
+	c.log.Info("PARAM: price = '" + price + "'")
 	c.log.Info("PARAM: quantity = '" + quantity + "'")
 	c.log.Info("PARAM: hasImg = '" + hasImg + "'")
 
 	var idi int
 	var err error
-	if id == ""{
+	if id == "" {
 		c.log.Error("[PARAM] received id is empty")
 		c.AjaxSetResult(400, "param error")
 		return
-	}else if idi, err = strconv.Atoi(id); err != nil{
+	} else if idi, err = strconv.Atoi(id); err != nil {
 		c.log.Error("[PARAM] received id is not an integer: id: '" + id + "', error: " + err.Error())
 		c.AjaxSetResult(400, "param error")
 		return
 	}
-	if name == ""{
+	if name == "" {
 		c.log.Error("[PARAM] received name is empty")
 		c.AjaxSetResult(400, "param error")
 		return
@@ -273,9 +273,9 @@ func (c *MainController) UpdGood(){
 		return
 	}
 
-	if imageFile != nil{
+	if imageFile != nil {
 		defer imageFile.Close()
-		if imageHeader == nil{
+		if imageHeader == nil {
 			c.log.Error("imageHeader is nil when imageFile is not nil")
 			c.AjaxSetResult(500, "imageHeader is nil when imageFile is not nil")
 			return
@@ -286,36 +286,36 @@ func (c *MainController) UpdGood(){
 		}
 		c.log.Info("PARAM: image = ['" + imageHeader.Filename + "', '" + sizeFormat + "', '" + imageHeader.Header.Get(common.MINE_CONTENT_TYPE) + "'")
 		imageSaveFilename, err = common.RerenderImage(imageFile, imageHeader)
-		if err != nil{
-			c.AjaxSetResult(400, "Image rerender failed: " + err.Error())
+		if err != nil {
+			c.AjaxSetResult(400, "Image rerender failed: "+err.Error())
 			return
 		}
-	}else if imageErr != nil{
-		if hasImg == "ok"{
-			c.AjaxSetResult(400, "Image was corrupted: " + imageErr.Error())
+	} else if imageErr != nil {
+		if hasImg == "ok" {
+			c.AjaxSetResult(400, "Image was corrupted: "+imageErr.Error())
 			return
 		}
-	}else{
+	} else {
 		c.AjaxSetResult(400, "Image upload parse failed.")
 		return
 	}
 
 	good := models.Good{
-		Id: int32(idi),
-		Name: name,
-		Desc: desc,
-		Price: pricef,
+		Id:       int32(idi),
+		Name:     name,
+		Desc:     desc,
+		Price:    pricef,
 		Quantity: quantityi,
 	}
 
-	if imageSaveFilename != ""{
+	if imageSaveFilename != "" {
 		good.Image = imageSaveFilename
 	}
 
 	insertId, err := models.UpdateGoodsById(&good)
 	if err != nil {
 		c.log.Error("[AddGoods] Database error: " + err.Error())
-		c.AjaxSetResult(500, "database error: " + err.Error())
+		c.AjaxSetResult(500, "database error: "+err.Error())
 		return
 	}
 
@@ -324,11 +324,11 @@ func (c *MainController) UpdGood(){
 	return
 }
 
-func (c *MainController)SellGood(){
-	id := c.Ctx.Input.Query("id") // ID
-	quantity := c.Ctx.Input.Query("quantity") // sell quantity
-	price := c.Ctx.Input.Query("price") // sell price
-	remark := c.Ctx.Input.Query("remark") // remark
+func (c *MainController) SellGood() {
+	id := c.Ctx.Input.Query("id")                // ID
+	quantity := c.Ctx.Input.Query("quantity")    // sell quantity
+	price := c.Ctx.Input.Query("price")          // sell price
+	remark := c.Ctx.Input.Query("remark")        // remark
 	unitPrice := c.Ctx.Input.Query("unit_price") // unit price
 
 	var err error
@@ -344,87 +344,161 @@ func (c *MainController)SellGood(){
 	c.log.Info("[PARAM] remark = ", remark)
 	c.log.Info("[PARAM] unitPrice = ", unitPrice)
 
-	if idi, err = strconv.Atoi(id); err != nil{
+	if idi, err = strconv.Atoi(id); err != nil {
 		c.log.Error("cannot parse id to int: ", err.Error())
 		c.AjaxSetResult(400, "param error")
 		return
 	}
-	if idi <= 0{
-		c.log.Error("not an valid id: ", strconv.Itoa(idi))
+	if idi <= 0 {
+		c.log.Error("not an valid id: ", idi)
 		c.AjaxSetResult(400, "param error")
 		return
 	}
-	if quantityi, err = strconv.ParseInt(quantity, 10, 64); err != nil{
+	if quantityi, err = strconv.ParseInt(quantity, 10, 64); err != nil {
 		c.log.Error("cannot parse quantity to int: ", err.Error())
 		c.AjaxSetResult(400, "param error")
 		return
 	}
-	if pricef, err = strconv.ParseFloat(price, 64); err != nil{
+	if pricef, err = strconv.ParseFloat(price, 64); err != nil {
 		c.log.Error("cannot parse price to float64: ", err.Error())
 		c.AjaxSetResult(400, "param error")
 		return
 	}
-	if unitPricef, err = strconv.ParseFloat(unitPrice, 64); err != nil{
+	if unitPricef, err = strconv.ParseFloat(unitPrice, 64); err != nil {
 		c.log.Error("cannot parse unit_price to float64: ", err.Error())
 		c.AjaxSetResult(400, "param error")
 		return
 	}
 
 	thisGood, err := models.GetGoodsById(int32(idi))
-	if err != nil{
+	if err != nil {
 		c.log.Error("[Sell Good] db error: ", err.Error())
-		c.AjaxSetResult(500, "database error: " + err.Error())
+		c.AjaxSetResult(500, "database error: "+err.Error())
 		return
 	}
 
-	if thisGood.Price != unitPricef{
+	if thisGood.Price != unitPricef {
 		c.log.Error("sent request unit_price is not equal to current price.")
 		c.log.Error("CurrentUnitPrice: ", thisGood.Price, "; sent Price: ", unitPricef)
 		c.AjaxSetResult(400, "the current unit price is changed recently, please resend this request.")
 		return
 	}
-	if pricef == 0.0{
+	if pricef == 0.0 {
 		c.log.Info("[Sell Good] Sell good for free:" + thisGood.Name + " x" + quantity)
 	}
-	if thisGood.Quantity <= 0{
+	if thisGood.Quantity <= 0 {
 		c.log.Error("cannot sell goods while has no or negative storage: ", thisGood.Quantity)
-		c.AjaxSetResult(403, "cannot sell goods while has no or negative storage: " + strconv.FormatInt(thisGood.Quantity, 10))
+		c.AjaxSetResult(403, "cannot sell goods while has no or negative storage: "+strconv.FormatInt(thisGood.Quantity, 10))
 		return
 	}
 
 	balance := thisGood.Quantity - quantityi
-	if balance < 0{
+	if balance < 0 {
 		c.log.Info("[Sell Good] sold to negative balance")
 	}
 
 	balancedGood := models.Good{
-		Id: thisGood.Id,
+		Id:       thisGood.Id,
 		Quantity: balance,
 	}
 
 	var resultId int64
 	var resultHisId int64
-	if resultId, err = models.UpdateGoodsById(&balancedGood, "Quantity"); err != nil{
+	if resultId, err = models.UpdateGoodsById(&balancedGood, "Quantity"); err != nil {
 		c.log.Error("cannot update good balance, db error: " + err.Error())
-		c.AjaxSetResult(500, "cannot update good balance, db error: " + err.Error())
+		c.AjaxSetResult(500, "cannot update good balance, db error: "+err.Error())
 		return
 	}
 
 	// writing sell history
 	tryTimes := 5
 	i := 0
-	for i = 0; i < tryTimes; i++{
-		if resultHisId, err = models.AddSellsHistory(thisGood, quantityi, unitPricef, float64(quantityi) * unitPricef, remark, balance); err == nil{
+	for i = 0; i < tryTimes; i++ {
+		if resultHisId, err = models.AddSellsHistory(thisGood, quantityi, unitPricef, float64(quantityi)*unitPricef, remark, balance); err == nil {
 			break
 		}
 	}
-	if i >= tryTimes && err != nil{
+	if i >= tryTimes && err != nil {
 		c.log.Error("cannot insert good history, db error: " + err.Error())
-		c.AjaxSetResult(500, "cannot insert good history, db error: " + err.Error())
+		c.AjaxSetResult(500, "cannot insert good history, db error: "+err.Error())
+		return
 	}
 
 	c.res.Data["result_id"] = resultId
 	c.res.Data["result_his_id"] = resultHisId
 	c.AjaxSetResult(200, "success")
 	return
+}
+
+func (c *MainController) ImportGood() {
+	id := c.Ctx.Input.Query("id")             // ID
+	quantity := c.Ctx.Input.Query("quantity") // quantity
+	remark := c.Ctx.Input.Query("remark")
+
+	var err error
+	var idi int64
+	var quantityi int64
+
+	c.log.Info("Entry ImportGood operation.")
+	c.log.Info("[PARAM] id = ", id)
+	c.log.Info("[PARAM] quantity = ", quantity)
+
+	if idi, err = strconv.ParseInt(id, 10, 32); err != nil {
+		c.log.Error("cannot parse id to int: ", err.Error())
+		c.AjaxSetResult(400, "param error")
+		return
+	}
+	if idi <= 0 {
+		c.log.Error("not an valid id: ", idi)
+		c.AjaxSetResult(400, "param error")
+		return
+	}
+	if quantityi, err = strconv.ParseInt(quantity, 10, 64); err != nil {
+		c.log.Error("cannot parse quantity to int: ", err.Error())
+		c.AjaxSetResult(400, "param error")
+	}
+	if quantityi <= 0 {
+		c.log.Error("not an valid quntity: ", quantity)
+		c.AjaxSetResult(400, "param error")
+	}
+
+	thisGood, err := models.GetGoodsById(int32(idi))
+	if err != nil {
+		c.log.Error("[Import Good] db error: ", err.Error())
+		c.AjaxSetResult(500, "database error")
+		return
+	}
+
+	newBalance := thisGood.Quantity + quantityi
+	balancedGood := models.Good{
+		Id:       thisGood.Id,
+		Quantity: newBalance,
+	}
+
+	var resultId int64
+	var resultHisId int64
+	if resultId, err = models.UpdateGoodsById(&balancedGood, "Quantity"); err != nil {
+		c.log.Error("cannot update good balance, db error: " + err.Error())
+		c.AjaxSetResult(500, "cannot update good balance, db error: "+err.Error())
+		return
+	}
+
+	// writing import history
+	tryTimes := 5
+	i := 0
+	for i = 0; i < tryTimes; i++ {
+		if resultHisId, err = models.AddImportHistory(thisGood, quantityi, remark, newBalance); err == nil {
+			break
+		}
+	}
+	if i >= tryTimes && err != nil {
+		c.log.Error("cannot insert good history, db error: " + err.Error())
+		c.AjaxSetResult(500, "cannot insert good history, db error: "+err.Error())
+		return
+	}
+	c.res.Data["result_id"] = resultId
+	c.res.Data["result_his_id"] = resultHisId
+	c.AjaxSetResult(200, "success")
+	return
+
 }

@@ -133,3 +133,23 @@ function ajax_failed_handler_to_console(jqXHR, textStatus, errorThown){
 		"StatusCode: " + jqXHR.status + " " + jqXHR.statusText + "<br>" +
 		"Response: " + get_string(jqXHR.responseText) + "");
 }
+
+function to_href(url = null, after = 3000){
+	if (url){
+		if(typeof(after) === "number" && after > 0){
+			setTimeout(function(){
+				window.location.href = url;
+			}, after);
+		}else{
+			window.location.href = url;
+		}
+	}else{
+		if(typeof(after) === "number" && after > 0){
+			setTimeout(function(){
+				window.location.reload();
+			}, after);
+		}else{
+			window.location.reload();
+		}
+	}
+}

@@ -12,3 +12,5 @@ pkg/*
 goodsm.db
 go.sum
 *.bak
+
+/src/static/upload

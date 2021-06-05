@@ -64,12 +64,17 @@
     <div class="jumbotron">
         <h1 class="display-4">欢迎使用</h1>
         <p class="lead">Goods Manager系统会帮助您记录您店中货物的进出口的详情和累计的售出量, 您在每次售货或货物变更的时候即时操作, 系统将在每次操作后对记录和统计做出更新, 方便定时统计.</p>
+        {{if compare (.goods | len) `0`}}
         <hr class="my-4">
         <p>现在存库中尚没有货物登记, 可以点击下方按钮或标题栏中"添加货物"增加一条记录.</p>
-        <a class="btn btn-primary btn-lg" href="#" role="button">添加货物</a>
+        <a class="btn btn-primary btn-lg" href="/add" role="button">添加货物</a>
+        {{end}}
         <noscript>
+            <hr class="my-4">
             <p>本系统需要使用JavaScript来进行操作, 请打开浏览器的JavaScript运行选项, 确保系统各项功能正常.</p>
         </noscript>
+        <hr class="my-4">
+        <div class="alert"><h4 class="card-title">截至yyyy-mm-dd, 现有整体货物%d件, 本日售出%d件, 本月售出%d件</h4></div>
     </div>
 </div>
 
@@ -168,7 +173,6 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="alert"><h4 class="card-title">截至yyyy-mm-dd, 现有整体货物%d件, 本日售出%d件, 本月售出%d件</h4></div>
 
                     {{range .goods}}
 
@@ -203,7 +207,7 @@
                                                 <div class="dropdown-menu">
                                                     <button class="dropdown-item btn-sm good_import_btn" href="#">进货/调货</button>
                                                     <button class="dropdown-item btn-sm good_export_btn" href="#">撤柜/调出</button>
-                                                    <button class="dropdown-item btn-sm text-dark" href="#">编辑信息</button>
+                                                    <button class="dropdown-item btn-sm good_edit_btn text-dark" href="#">编辑信息</button>
                                                     <div class="dropdown-divider"></div>
                                                     <button class="dropdown-item btn-sm text-danger good_remove_btn" href="#">删除</button>
                                                 </div>
@@ -243,6 +247,20 @@
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- message toast -->
+<div class="toast" style="position: fixed; top: 50px; right: 5px; min-width:33.3%" id="msg-toast">
+    <div class="toast-header bg-primary text-white">
+        <strong class="mr-auto">提示信息</strong>
+        <small></small>
+        <button type="button" class="ml-2 mb-1 close" data-dismiss="toast">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="toast-body">
+        $message
     </div>
 </div>
 
@@ -554,6 +572,20 @@
                         after_inventory.html("请输入正确的撤柜数量");
                     }
                 },
+                show_msg_toast = function(msg, config = null){
+                    let toast = $("#msg-toast"),
+                            toast_msg = toast.find(".toast-body"),
+                            conf = config || {
+                                animation: true,
+                                autoide: true,
+                                delay: 3000,
+                            };
+                    if(typeof(msg) !== "string" || msg === ""){
+                        return;
+                    }
+                    toast_msg.html(msg);
+                    toast.toast(conf).toast("show");
+                },
                 
                 _ = function(){
                     let good_sell_modal = $("#modal_for_sale");
@@ -659,6 +691,18 @@
                 show: true
             });
         });
+        $(".good_edit_btn").click(function(){
+            let good_card = $(this).parents(".good_card"),
+                    good_id = good_card.data("id"),
+                    good_name = good_card.data("name");
+            if (typeof(good_id) === "number" && parseInt(good_id) == good_id && parseInt(good_id) > 0){
+                let url = "/add?id=" + good_id
+                window.location.href = url
+            }else{
+                show_msg_toast("页面内容过期, 请刷新后再试.");
+                return
+            }
+        })
         $("#modal_for_remove .modal-footer button.submit").click(function(){
             let good_remove_modal = $("#modal_for_remove"),
                     good_id = good_remove_modal.find("input[name=id]").val(),
@@ -682,7 +726,8 @@
                 let data = res_data.data;
                 if(data === "success"){
                     good_remove_modal.modal("hide");
-                    location.reload();
+                    show_msg_toast("<h3>删除成功! 请稍候...</h3>");
+                    to_href();
                     return;
                 }else{
                     alert_msg(good_remove_modal, "服务器未正常返回回执, 请联系管理员.<br>" + get_string(res_data));
@@ -723,7 +768,8 @@
                 let data = res_data.data;
                 if(data === "success"){
                     good_export_modal.modal("hide");
-                    location.reload();
+                    show_msg_toast("<h3>撤柜成功! 请稍候...</h3>");
+                    to_href();
                     return;
                 }else{
                     alert_msg(good_export_modal, "服务器未正常返回回执, 请联系管理员.<br>" + get_string(res_data));
@@ -759,7 +805,8 @@
                 let data = res_data.data;
                 if(data === "success"){
                     good_import_modal.modal("hide");
-                    location.reload();
+                    show_msg_toast("<h3>进货成功! 请稍候...</h3>");
+                    to_href();
                     return;
                 }else{
                     alert_msg(good_import_modal, "服务器未正常返回回执, 请联系管理员.<br>" + get_string(res_data));
@@ -816,7 +863,8 @@
                 //if(typeof(data.result_id) !== "undefined" && data.result_id == good_id){
                 if(typeof(res_data.msg) !== "undefined" && res_data.msg === "success"){
                     good_sell_modal.modal("hide");
-                    location.reload();
+                    show_msg_toast("<h3>出售成功! 请稍候...</h3>");
+                    to_href();
                     return;
                 }else{
                     alert_msg(good_sell_modal, "服务器未正常返回回执, 请联系管理员.<br>" + get_string(res_data));
