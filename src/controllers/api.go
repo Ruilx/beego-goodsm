@@ -500,5 +500,14 @@ func (c *MainController) ImportGood() {
 	c.res.Data["result_his_id"] = resultHisId
 	c.AjaxSetResult(200, "success")
 	return
+}
 
+func (c *MainController) ExportGood(){
+	id := c.Ctx.Input.Query("id")
+	quantity := c.Ctx.Input.Query("quantity")
+	remark := c.Ctx.Input.Query("remark")
+
+	var err error
+	var idi int64
+	var quantityi int64
 }

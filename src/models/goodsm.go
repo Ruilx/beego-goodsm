@@ -16,13 +16,13 @@ import (
 const DBNAME = "default"
 
 const (
-	ORDERBY_UNKNOWN = 0
+	ORDERBY_UNKNOWN = iota
 	ORDERBY_ASC
 	ORDERBY_DESC
 )
 
 const (
-	STATUS_UNKNWON = 0 // 不使用
+	STATUS_UNKNWON = iota // 不使用
 	STATUS_ACTIVE      // 默认, 状态有效
 	STATUS_DELETED     // 状态被人工删除, 但未还原
 	STATUS_REVOKE      // 状态被撤回(比如撤回卖出等)
@@ -272,7 +272,7 @@ func AddExportHistory(good *Good, quantity int64, remark string, balance int64)(
 	money := good.Price * float64(quantity)
 	his := History{
 		Event: EVENT_EXPORT,
-		GoodId: good.id,
+		GoodId: good.Id,
 		GoodName: good.Name,
 		GoodDesc: good.Desc,
 		GoodPrice: good.Price,
@@ -289,15 +289,15 @@ func AddExportHistory(good *Good, quantity int64, remark string, balance int64)(
 func AddDeleteHistory(good *Good, remark string)(id int64, err error){
 	his := History{
 		Event: EVENT_DELETE,
-		GoodId: Good.Id,
-		GoodName: Good.Name,
-		GoodDesc: Good.Desc,
-		GoodPrice: Good.Price,
-		GoodImage: Good.Image,
-		Quantity: Good.Quantity,
-		Money: float64(Good.Quantity) * Good.Price,
+		GoodId: good.Id,
+		GoodName: good.Name,
+		GoodDesc: good.Desc,
+		GoodPrice: good.Price,
+		GoodImage: good.Image,
+		Quantity: good.Quantity,
+		Money: float64(good.Quantity) * good.Price,
 		Remark: remark,
-		Info: "[删除]: 删除【" + good.Name + "】，删前库存【" + strconv.FormatInt(Good.Quantity, 10) + "】。"
+		Info: "[删除]: 删除【" + good.Name + "】，删前库存【" + strconv.FormatInt(good.Quantity, 10) + "】。",
 		Status: 1,
 	}
 	return AddHistory(&his)

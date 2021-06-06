@@ -1,6 +1,8 @@
 package common
 
 import (
+	"crypto/md5"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"image"
@@ -18,6 +20,9 @@ import (
 	"github.com/go-basic/uuid"
 	"github.com/nfnt/resize"
 	"golang.org/x/image/bmp"
+
+	"github.com/jackpal/gateway"
+	"github.com/skip2/go-qrcode"
 )
 
 const (
@@ -36,7 +41,20 @@ const (
 
 const SAVING_IMAGE_SUFFIX = ".jpg"
 
-func GetIPAddress() (ip []string, err error) {
+type QRCodeConfig struct{
+	QRCodeConfName string
+}
+
+func QRCodeImageBase64(msg string)(imageBase64 string, err error){
+	pngImage, err := qrcode.Encode(msg, qrcode.Medium, 150)
+	if err != nil{
+		return
+	}
+	pngBase64 := base64.StdEncoding.EncodeToString(pngImage)
+	return "data:image/png;base64," + pngBase64, nil
+}
+
+func GetIPAddresses() (ip []string, err error) {
 	var addrs []net.Addr
 	if addrs, err = net.InterfaceAddrs(); err != nil {
 		return nil, err
@@ -49,6 +67,14 @@ func GetIPAddress() (ip []string, err error) {
 		}
 	}
 	return ip, nil
+}
+
+func GetActiveIPAddress()(ip net.IP, err error){
+	return gateway.DiscoverInterface()
+}
+
+func GetActiveIPGateway()(ip net.IP, err error){
+	return gateway.DiscoverGateway()
 }
 
 func RerenderImage(fileHandler multipart.File, fileHandlerHeader *multipart.FileHeader) (filename string, err error) {
@@ -101,11 +127,14 @@ func RerenderImage(fileHandler multipart.File, fileHandlerHeader *multipart.File
 	if uuidStr, err = uuid.GenerateUUID(); err != nil {
 		return "", errors.New("Create UUID failed: " + err.Error())
 	}
-	if outImg, err = os.Create(wdDir + IMAGE_ORIGIN_PATH_PREFIX + uuidStr + SAVING_IMAGE_SUFFIX); err != nil {
+	filename = uuidStr + SAVING_IMAGE_SUFFIX
+	originFilename := wdDir + IMAGE_ORIGIN_PATH_PREFIX + uuidStr + SAVING_IMAGE_SUFFIX
+	if outImg, err = os.Create(originFilename); err != nil {
 		return "", errors.New("create original image file failed: " + err.Error())
 	}
 	defer outImg.Close()
-	if outThumb, err = os.Create(wdDir + IMAGE_THUMB_PATH_PREFIX + uuidStr + SAVING_IMAGE_SUFFIX); err != nil {
+	thumbFilename := wdDir + IMAGE_THUMB_PATH_PREFIX + uuidStr + SAVING_IMAGE_SUFFIX
+	if outThumb, err = os.Create(thumbFilename); err != nil {
 		return "", errors.New("create thumb image file failed: " + err.Error())
 	}
 	defer outThumb.Close()
@@ -115,7 +144,39 @@ func RerenderImage(fileHandler multipart.File, fileHandlerHeader *multipart.File
 	if err = jpeg.Encode(outThumb, imgThumb, nil); err != nil {
 		return "", errors.New("writing thumb file failed: " + err.Error())
 	}
-	return uuidStr + SAVING_IMAGE_SUFFIX, nil
+
+	_, err = outImg.Seek(0, io.SeekStart)
+	if err != nil {
+		return filename, errors.New("outImg file seek to 0 failed: " + err.Error())
+	}
+	md5Obj := md5.New()
+	buf := make([]byte, 1024)
+	n := 1
+	for n > 0{
+		if n, err = outImg.Read(buf); err != nil{
+			return filename, errors.New("outImg file read err. err: " + err.Error())
+		}
+		if n <= 0{
+			break
+		}
+		if _, err = md5Obj.Write(buf); err != nil {
+			return filename, errors.New("outImg md5 checksum append error. err: " + err.Error())
+		}
+	}
+	md5Str := string(md5Obj.Sum(nil))
+
+	newOriginFilename := wdDir + IMAGE_ORIGIN_PATH_PREFIX + md5Str + SAVING_IMAGE_SUFFIX
+	_ = outImg.Close()
+	if err = os.Rename(originFilename, newOriginFilename); err != nil {
+		return filename, errors.New("outImg cannot rename to md5sum. err: " + err.Error())
+	}
+	newThumbFilename := wdDir + IMAGE_THUMB_PATH_PREFIX + md5Str + SAVING_IMAGE_SUFFIX
+	_ = outThumb.Close()
+	if err = os.Rename(thumbFilename, newThumbFilename); err != nil {
+		return filename, errors.New("outThumb cannot rename to md5sum, err: " + err.Error())
+	}
+
+	return md5Str + SAVING_IMAGE_SUFFIX, nil
 }
 
 func NumberUnitFormat(number int64, prec int8, unit int, baseUnit int, glue string) (result string, err error) {
