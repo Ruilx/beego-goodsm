@@ -4,26 +4,27 @@ import (
 	"beego-goodsm/common"
 	_ "beego-goodsm/routers"
 	"fmt"
-	"github.com/beego/beego/v2/core/logs"
-	beego "github.com/beego/beego/v2/server/web"
-	"github.com/pkg/errors"
 	"net"
 	"os"
 	"strconv"
+
+	"github.com/beego/beego/v2/core/logs"
+	beego "github.com/beego/beego/v2/server/web"
+	"github.com/pkg/errors"
 )
 
 const (
-	CONF_QRCODE_IP = "qrcode_ip"
+	CONF_QRCODE_IP      = "qrcode_ip"
 	CONF_QRCODE_PNG_B64 = "qrcode_base64"
-	CONF_HTTP_PORT = "httpport"
+	CONF_HTTP_PORT      = "httpport"
 )
 
-func checkIpQrcode(ipstr string){
+func checkIpQrcode(ipstr string) {
 	ipInConf, err := beego.AppConfig.String(CONF_QRCODE_IP)
-	if err != nil{
+	if err != nil {
 		ipInConf = ""
 	}
-	if ipstr != ipInConf{
+	if ipstr != ipInConf {
 		qrImgBase64, err := common.QRCodeImageBase64(ipstr)
 		if err != nil {
 			fmt.Println("Cannot draw a qrcode to save and use in webpage. err: ", err.Error())
@@ -35,32 +36,32 @@ func checkIpQrcode(ipstr string){
 		if err = beego.AppConfig.Set(CONF_QRCODE_IP, ipstr); err != nil {
 			fmt.Println("Cannot save qrcode ip in config file. err: ", err.Error())
 		}
-	}else{
+	} else {
 		fmt.Println("QRCode '" + ipstr + "' has already in config.")
 	}
 }
 
-func createDirectory(path string) (err error){
+func createDirectory(path string) (err error) {
 	var info os.FileInfo
 	beelogs := logs.GetBeeLogger()
-	if info, err = os.Stat(path); err != nil{
-		if !os.IsNotExist(err){
+	if info, err = os.Stat(path); err != nil {
+		if !os.IsNotExist(err) {
 			return
 		}
-	}else{
-		if !info.IsDir(){
-			if err = os.Remove(path); err != nil{
+	} else {
+		if !info.IsDir() {
+			if err = os.Remove(path); err != nil {
 				return errors.New("failed while trying to remove not expected file to create a directory, path: " + path)
 			}
 			beelogs.Warn("[Init] Removed a file which has a same name to a directory when try to create the directory called: " + path)
-		}else{
+		} else {
 			return nil
 		}
 	}
-	if _, err = os.Stat(path); err != nil && !os.IsNotExist(err){
+	if _, err = os.Stat(path); err != nil && !os.IsNotExist(err) {
 		return
 	}
-	if err = os.Mkdir(path, os.ModeDir); err != nil{
+	if err = os.Mkdir(path, os.ModeDir); err != nil {
 		return
 	}
 	if err = os.Chmod(path, os.ModeDir); err != nil {
@@ -70,21 +71,21 @@ func createDirectory(path string) (err error){
 	return nil
 }
 
-func initialize() (err error){
+func initialize() (err error) {
 	var dir string
-	if dir, err = os.Getwd(); err != nil{
+	if dir, err = os.Getwd(); err != nil {
 		return
 	}
-	if dir == ""{
+	if dir == "" {
 		return errors.New("failed while trying to find current directory. executable path: " + dir)
 	}
-	if err = createDirectory(dir + common.IMAGE_UPLOAD_PATH); err != nil{
+	if err = createDirectory(dir + common.IMAGE_UPLOAD_PATH); err != nil {
 		return
 	}
-	if err = createDirectory(dir + common.IMAGE_ORIGIN_PATH_PREFIX); err != nil{
+	if err = createDirectory(dir + common.IMAGE_ORIGIN_PATH_PREFIX); err != nil {
 		return
 	}
-	if err = createDirectory(dir + common.IMAGE_THUMB_PATH_PREFIX); err != nil{
+	if err = createDirectory(dir + common.IMAGE_THUMB_PATH_PREFIX); err != nil {
 		return
 	}
 	beego.BConfig.WebConfig.AutoRender = true
@@ -109,14 +110,23 @@ func main() {
 	}
 	ips, err := common.GetIPAddresses()
 	if err != nil {
-		fmt.Println("Cannot get any IPs from your computer, try 'localhost' in your browser.")
+		fmt.Println("Cannot get any IPs from your computer, try 'localhost' or '127.0.0.1' in your browser.")
 		ips := make([]net.IP, 1)
 		ipBytes := make(net.IP, net.IPv4len)
 		copy(ipBytes, []byte{127, 0, 0, 1})
 		ips = append(ips, ipBytes)
 	}
+	ips2, err := common.GetIPAddresses2()
+	if err == nil {
+		fmt.Println("-------------------")
+		for _, i := range ips2 {
+			fmt.Println(i)
+		}
+		fmt.Println("-------------------")
+	}
 	ip4, err := common.GetActiveIPAddress()
 	if err != nil {
+		fmt.Println("GetActiveIPAddress Failed. Error: " + err.Error())
 		fmt.Println("Cannot get IP from your computer, try 'localhost' in your browser.")
 		ip4 = []byte{127, 0, 0, 1}
 	}
@@ -124,19 +134,23 @@ func main() {
 	fmt.Println("Connect IPs: ==========")
 	for _, v := range ips {
 		fmt.Print(v + ":" + strconv.Itoa(port))
-		if v == ip{
+		if v == ip {
 			fmt.Println(" <-- [Active]")
-		}else{
+		} else {
 			fmt.Println()
 		}
 	}
 	fmt.Println("=======================")
 
+	if ip, err := common.GetActiveIPGateway(); err == nil {
+		fmt.Println("Gatway IP: ", ip.String())
+	}
+
 	fmt.Println("Checking active IP to config and try to draw qrcode.")
 	serverUrl := "http://" + ip + ":" + strconv.Itoa(port)
 	checkIpQrcode(serverUrl)
 
-	if err = initialize(); err != nil{
+	if err = initialize(); err != nil {
 		fmt.Println("Cannot initialing webserver environment with error: '" + err.Error() + "', please contract your administrator for further information.")
 		os.Exit(1)
 	}

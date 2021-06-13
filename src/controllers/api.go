@@ -5,6 +5,7 @@ import (
 	"beego-goodsm/models"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/beego/beego/v2/core/logs"
@@ -62,6 +63,7 @@ func (c *MainController) Post() {
 	case "upd": // Update Good
 		c.UpdGood()
 	case "del": // Delete Good
+		c.DeleteGood()
 	case "sel": // Sell Good
 		c.SellGood()
 	case "get": // Get Goods
@@ -69,6 +71,9 @@ func (c *MainController) Post() {
 	case "imp": // Import Goods
 		c.ImportGood()
 	case "exp": // Export Goods
+		c.ExportGood()
+	case "rcv": // Recover Goods
+		c.RecoverGood()
 	default:
 		c.res.Msg = "Not a valid operation"
 	}
@@ -442,6 +447,7 @@ func (c *MainController) ImportGood() {
 	c.log.Info("Entry ImportGood operation.")
 	c.log.Info("[PARAM] id = ", id)
 	c.log.Info("[PARAM] quantity = ", quantity)
+	c.log.Info("[PARAM] remark = ", remark)
 
 	if idi, err = strconv.ParseInt(id, 10, 32); err != nil {
 		c.log.Error("cannot parse id to int: ", err.Error())
@@ -456,10 +462,12 @@ func (c *MainController) ImportGood() {
 	if quantityi, err = strconv.ParseInt(quantity, 10, 64); err != nil {
 		c.log.Error("cannot parse quantity to int: ", err.Error())
 		c.AjaxSetResult(400, "param error")
+		return
 	}
 	if quantityi <= 0 {
 		c.log.Error("not an valid quntity: ", quantity)
 		c.AjaxSetResult(400, "param error")
+		return
 	}
 
 	thisGood, err := models.GetGoodsById(int32(idi))
@@ -470,6 +478,11 @@ func (c *MainController) ImportGood() {
 	}
 
 	newBalance := thisGood.Quantity + quantityi
+	if newBalance < thisGood.Quantity {
+		c.log.Error("[Import Good] param quantity overflowed. Current quantity: ", newBalance)
+		c.AjaxSetResult(403, "param quantity maybe to large cannot be import.")
+		return
+	}
 	balancedGood := models.Good{
 		Id:       thisGood.Id,
 		Quantity: newBalance,
@@ -502,7 +515,7 @@ func (c *MainController) ImportGood() {
 	return
 }
 
-func (c *MainController) ExportGood(){
+func (c *MainController) ExportGood() {
 	id := c.Ctx.Input.Query("id")
 	quantity := c.Ctx.Input.Query("quantity")
 	remark := c.Ctx.Input.Query("remark")
@@ -510,4 +523,209 @@ func (c *MainController) ExportGood(){
 	var err error
 	var idi int64
 	var quantityi int64
+
+	c.log.Info("Entry ExportGood operation.")
+	c.log.Info("[PARAM] id = ", id)
+	c.log.Info("[PARAM] quantity = ", quantity)
+	c.log.Info("[PARAM] remark = ", remark)
+
+	if idi, err = strconv.ParseInt(id, 10, 32); err != nil {
+		c.log.Error("cannot parse id to int: ", err.Error())
+		c.AjaxSetResult(400, "param error")
+		return
+	}
+	if idi <= 0 {
+		c.log.Error("not an vaild id: ", idi)
+		c.AjaxSetResult(400, "param error")
+		return
+	}
+	if quantityi, err = strconv.ParseInt(quantity, 10, 64); err != nil {
+		c.log.Error("cannot parse quantity to int: ", err.Error())
+		c.AjaxSetResult(400, "param error")
+		return
+	}
+	if quantityi <= 0 {
+		c.log.Error("not an valid quantity: ", quantity)
+		c.AjaxSetResult(400, "param error")
+		return
+	}
+
+	thisGood, err := models.GetGoodsById(int32(idi))
+	if err != nil {
+		c.log.Error("[Export Good] db error: ", err.Error())
+		c.AjaxSetResult(500, "database error")
+		return
+	}
+
+	newBalance := thisGood.Quantity - quantityi
+	if newBalance > thisGood.Quantity {
+		c.log.Error("[Export Good] param quantity overflowed. Current quantity: ", newBalance)
+		c.AjaxSetResult(403, "param quantity maybe to large cannot be export.")
+		return
+	}
+	balancedGood := models.Good{
+		Id:       thisGood.Id,
+		Quantity: newBalance,
+	}
+
+	var resultId int64
+	var resultHisId int64
+	if resultId, err = models.UpdateGoodsById(&balancedGood, "Quantity"); err != nil {
+		c.log.Error("cannot update good balance, db error: " + err.Error())
+		c.AjaxSetResult(500, "cannot update good balance, db error: "+err.Error())
+		return
+	}
+
+	// writing export history
+	tryTimes := 5
+	i := 0
+	for i = 0; i < tryTimes; i++ {
+		if resultHisId, err = models.AddExportHistory(thisGood, quantityi, remark, newBalance); err == nil {
+			break
+		}
+	}
+	if i >= tryTimes && err != nil {
+		c.log.Error("cannot insert good history, db error: " + err.Error())
+		c.AjaxSetResult(500, "cannot insert good history, db error: "+err.Error())
+		return
+	}
+	c.res.Data["result_id"] = resultId
+	c.res.Data["result_his_id"] = resultHisId
+	c.AjaxSetResult(200, "success")
+	return
+}
+
+func (c *MainController) DeleteGood() {
+	id := c.Ctx.Input.Query("id")
+	remark := c.Ctx.Input.Query("remark")
+
+	var err error
+	var idi int64
+
+	c.log.Info("Entry DeleteGood operation.")
+	c.log.Info("[PARAM] id: ", idi)
+	c.log.Info("[PARAM] remark: ", remark)
+
+	if idi, err = strconv.ParseInt(id, 10, 32); err != nil {
+		c.log.Error("cannot parse id to int: ", err.Error())
+		c.AjaxSetResult(400, "param error")
+		return
+	}
+	if idi <= 0 {
+		c.log.Error("not an valid id: ", idi)
+		c.AjaxSetResult(400, "param error")
+		return
+	}
+
+	thisGood, err := models.GetGoodsById(int32(idi))
+	if err != nil {
+		c.log.Error("[Delete Good] db error: ", err.Error())
+		c.AjaxSetResult(500, "database error")
+		return
+	}
+
+	if thisGood.Deleted {
+		c.log.Error("[Delete Good] the good was deleted.")
+		c.AjaxSetResult(400, "Good: '"+thisGood.Name+"' was deleted.")
+		return
+	}
+
+	balancedGood := models.Good{
+		Id:         thisGood.Id,
+		Deleted:    true,
+		DeleteTime: time.Now(),
+	}
+
+	var resultId int64
+	var resultHisId int64
+	if resultId, err = models.UpdateGoodsById(&balancedGood, "Deleted", "DeleteTime"); err != nil {
+		c.log.Error("cannot update good deleting status, db error: " + err.Error())
+		c.AjaxSetResult(500, "cannot update good deleting status, db error: "+err.Error())
+		return
+	}
+
+	// writing deleted history
+	tryTimes := 5
+	i := 0
+	for i = 0; i < tryTimes; i++ {
+		if resultHisId, err = models.AddDeleteHistory(thisGood, remark); err == nil {
+			break
+		}
+	}
+	if i >= tryTimes && err != nil {
+		c.log.Error("cannot update deleting history, db error: " + err.Error())
+		c.AjaxSetResult(500, "cannot udpate deleting history, db error: "+err.Error())
+		return
+	}
+	c.res.Data["result_id"] = resultId
+	c.res.Data["result_his_id"] = resultHisId
+	c.AjaxSetResult(200, "success")
+	return
+}
+
+func (c *MainController) RecoverGood() {
+	id := c.Ctx.Input.Query("id")
+	remark := c.Ctx.Input.Query("remark")
+
+	var err error
+	var idi int64
+
+	c.log.Info("Entry RecoverGood operation.")
+	c.log.Info("[PARAM] id: ", id)
+	c.log.Info("[PARAM] remark: ", remark)
+
+	if idi, err = strconv.ParseInt(id, 10, 32); err != nil {
+		c.log.Error("cannot parse id to int: ", err.Error())
+		c.AjaxSetResult(400, "param error")
+		return
+	}
+	if idi <= 0 {
+		c.log.Error("not an valid id: ", idi)
+		c.AjaxSetResult(400, "param error")
+		return
+	}
+
+	thisGood, err := models.GetGoodsById(int32(idi))
+	if err != nil {
+		c.log.Error("[Recover Good] db error: ", err.Error())
+		c.AjaxSetResult(500, "database error")
+		return
+	}
+
+	if !thisGood.Deleted {
+		c.log.Error("[Recover Good] the good isn't deleted.")
+		c.AjaxSetResult(400, "Good: '"+thisGood.Name+"' isn't deleted.")
+		return
+	}
+
+	balancedGood := models.Good{
+		Id:      thisGood.Id,
+		Deleted: false,
+	}
+
+	var resultId int64
+	var resultHisId int64
+	if resultId, err = models.UpdateGoodsById(&balancedGood, "Deleted"); err != nil {
+		c.log.Error("cannot update good deleting status, db error: " + err.Error())
+		c.AjaxSetResult(500, "cannot update good deleting status, db error: "+err.Error())
+		return
+	}
+
+	// writing recovered history
+	tryTimes := 5
+	i := 0
+	for i = 0; i < tryTimes; i++ {
+		if resultHisId, err = models.AddRecoverHistory(thisGood, remark); err == nil {
+			break
+		}
+	}
+	if i >= tryTimes && err != nil {
+		c.log.Error("cannot update recovering history, db error: " + err.Error())
+		c.AjaxSetResult(500, "cannot update recovering history, db error: "+err.Error())
+		return
+	}
+	c.res.Data["result_id"] = resultId
+	c.res.Data["result_his_id"] = resultHisId
+	c.AjaxSetResult(200, "success")
+	return
 }

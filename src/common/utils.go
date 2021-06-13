@@ -41,13 +41,9 @@ const (
 
 const SAVING_IMAGE_SUFFIX = ".jpg"
 
-type QRCodeConfig struct{
-	QRCodeConfName string
-}
-
-func QRCodeImageBase64(msg string)(imageBase64 string, err error){
+func QRCodeImageBase64(msg string) (imageBase64 string, err error) {
 	pngImage, err := qrcode.Encode(msg, qrcode.Medium, 150)
-	if err != nil{
+	if err != nil {
 		return
 	}
 	pngBase64 := base64.StdEncoding.EncodeToString(pngImage)
@@ -69,11 +65,34 @@ func GetIPAddresses() (ip []string, err error) {
 	return ip, nil
 }
 
-func GetActiveIPAddress()(ip net.IP, err error){
+func GetIPAddresses2() (ip []string, err error) {
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return
+	}
+	for _, i := range interfaces {
+		if i.Flags&net.FlagUp != 0 && (i.Flags&net.FlagLoopback) == 0 {
+			addrs, err := i.Addrs()
+			if err != nil {
+				continue
+			}
+			for _, j := range addrs {
+				if ipnet, ok := j.(*net.IPNet); ok {
+					if ipnet.IP.To4() != nil {
+						ip = append(ip, ipnet.IP.String())
+					}
+				}
+			}
+		}
+	}
+	return
+}
+
+func GetActiveIPAddress() (ip net.IP, err error) {
 	return gateway.DiscoverInterface()
 }
 
-func GetActiveIPGateway()(ip net.IP, err error){
+func GetActiveIPGateway() (ip net.IP, err error) {
 	return gateway.DiscoverGateway()
 }
 
@@ -152,11 +171,11 @@ func RerenderImage(fileHandler multipart.File, fileHandlerHeader *multipart.File
 	md5Obj := md5.New()
 	buf := make([]byte, 1024)
 	n := 1
-	for n > 0{
-		if n, err = outImg.Read(buf); err != nil{
+	for n > 0 {
+		if n, err = outImg.Read(buf); err != nil {
 			return filename, errors.New("outImg file read err. err: " + err.Error())
 		}
-		if n <= 0{
+		if n <= 0 {
 			break
 		}
 		if _, err = md5Obj.Write(buf); err != nil {

@@ -23,17 +23,18 @@ const (
 
 const (
 	STATUS_UNKNWON = iota // 不使用
-	STATUS_ACTIVE      // 默认, 状态有效
-	STATUS_DELETED     // 状态被人工删除, 但未还原
-	STATUS_REVOKE      // 状态被撤回(比如撤回卖出等)
+	STATUS_ACTIVE         // 默认, 状态有效
+	STATUS_DELETED        // 状态被人工删除, 但未还原
+	STATUS_REVOKE         // 状态被撤回(比如撤回卖出等)
 )
 
 const (
-	EVENT_ADD    = "登记"
-	EVENT_SELL   = "售出"
-	EVENT_IMPORT = "进货"
-	EVENT_EXPORT = "撤柜"
-	EVENT_DELETE = "删除"
+	EVENT_ADD     = "登记"
+	EVENT_SELL    = "售出"
+	EVENT_IMPORT  = "进货"
+	EVENT_EXPORT  = "撤柜"
+	EVENT_DELETE  = "删除"
+	EVENT_RECOVER = "恢复"
 )
 
 type Good struct {
@@ -211,7 +212,7 @@ func UpdateGoodsById(good *Good, col ...string) (id int64, err error) {
 	ormHandle := orm.NewOrmUsingDB(DBNAME)
 	idReady := Good{Id: good.Id}
 	if err = ormHandle.Read(&idReady); err == nil {
-		return ormHandle.Update(good, col ...)
+		return ormHandle.Update(good, col...)
 	}
 	return
 }
@@ -233,78 +234,95 @@ func AddHistory(his *History) (id int64, err error) {
 	return
 }
 
-func AddSellsHistory(good *Good, quantity int64, unitPrice float64, money float64, remark string, balance int64)(id int64, err error){
+func AddSellsHistory(good *Good, quantity int64, unitPrice float64, money float64, remark string, balance int64) (id int64, err error) {
 	his := History{
-		Event: EVENT_SELL,
-		GoodId: good.Id,
-		GoodName: good.Name,
-		GoodDesc: good.Desc,
+		Event:     EVENT_SELL,
+		GoodId:    good.Id,
+		GoodName:  good.Name,
+		GoodDesc:  good.Desc,
 		GoodPrice: good.Price,
 		GoodImage: good.Image,
-		Quantity: quantity,
-		Money: money,
-		Remark: remark,
-		Info: "[出售]: 卖出【" + good.Name + "】，数量【" + strconv.FormatInt(quantity, 10) + "】，单价【" + strconv.FormatFloat(unitPrice, 'f', 2, 64) + "】，总价【" + strconv.FormatFloat(money, 'f', 2, 64,) + "】，剩余库存【" + strconv.FormatInt(balance, 10) + "】。",
-		Status: 1,
+		Quantity:  quantity,
+		Money:     money,
+		Remark:    remark,
+		Info:      "[出售]: 卖出【" + good.Name + "】，数量【" + strconv.FormatInt(quantity, 10) + "】，单价【" + strconv.FormatFloat(unitPrice, 'f', 2, 64) + "】，总价【" + strconv.FormatFloat(money, 'f', 2, 64) + "】，剩余库存【" + strconv.FormatInt(balance, 10) + "】。",
+		Status:    1,
 	}
 	return AddHistory(&his)
 }
 
-func AddImportHistory(good *Good, quantity int64, remark string, balance int64)(id int64, err error){
+func AddImportHistory(good *Good, quantity int64, remark string, balance int64) (id int64, err error) {
 	money := good.Price * float64(quantity) // 进货物品所产生的定价价值
 	his := History{
-		Event: EVENT_IMPORT,
-		GoodId: good.Id,
-		GoodName: good.Name,
-		GoodDesc: good.Desc,
+		Event:     EVENT_IMPORT,
+		GoodId:    good.Id,
+		GoodName:  good.Name,
+		GoodDesc:  good.Desc,
 		GoodPrice: good.Price,
 		GoodImage: good.Image,
-		Quantity: quantity,
-		Money: money,
-		Remark: remark,
-		Info: "[进货]: 进货【" + good.Name + "】，数量【" + strconv.FormatInt(quantity, 10) + "】，库存【" + strconv.FormatInt(good.Quantity, 10) + "】，总价【" + strconv.FormatFloat(money, 'f', 2, 64) + "】，当前库存【" + strconv.FormatInt(balance, 10) + "】。",
-		Status: 1,
+		Quantity:  quantity,
+		Money:     money,
+		Remark:    remark,
+		Info:      "[进货]: 进货【" + good.Name + "】，数量【" + strconv.FormatInt(quantity, 10) + "】，库存【" + strconv.FormatInt(good.Quantity, 10) + "】，总价【" + strconv.FormatFloat(money, 'f', 2, 64) + "】，当前库存【" + strconv.FormatInt(balance, 10) + "】。",
+		Status:    1,
 	}
 	return AddHistory(&his)
 }
 
-func AddExportHistory(good *Good, quantity int64, remark string, balance int64)(id int64, err error){
+func AddExportHistory(good *Good, quantity int64, remark string, balance int64) (id int64, err error) {
 	money := good.Price * float64(quantity)
 	his := History{
-		Event: EVENT_EXPORT,
-		GoodId: good.Id,
-		GoodName: good.Name,
-		GoodDesc: good.Desc,
+		Event:     EVENT_EXPORT,
+		GoodId:    good.Id,
+		GoodName:  good.Name,
+		GoodDesc:  good.Desc,
 		GoodPrice: good.Price,
 		GoodImage: good.Image,
-		Quantity: quantity,
-		Money: money,
-		Remark: remark,
-		Info: "[撤柜]: 撤柜【" + good.Name + "】，数量【" + strconv.FormatInt(quantity, 10) + "】，库存【" + strconv.FormatInt(good.Quantity, 10) + "】，总价【" + strconv.FormatFloat(money, 'f', 2, 64) + "】，当前库存【" + strconv.FormatInt(balance, 10) + "】。",
-		Status: 1,
+		Quantity:  quantity,
+		Money:     money,
+		Remark:    remark,
+		Info:      "[撤柜]: 撤柜【" + good.Name + "】，数量【" + strconv.FormatInt(quantity, 10) + "】，库存【" + strconv.FormatInt(good.Quantity, 10) + "】，总价【" + strconv.FormatFloat(money, 'f', 2, 64) + "】，当前库存【" + strconv.FormatInt(balance, 10) + "】。",
+		Status:    1,
 	}
 	return AddHistory(&his)
 }
 
-func AddDeleteHistory(good *Good, remark string)(id int64, err error){
+func AddDeleteHistory(good *Good, remark string) (id int64, err error) {
 	his := History{
-		Event: EVENT_DELETE,
-		GoodId: good.Id,
-		GoodName: good.Name,
-		GoodDesc: good.Desc,
+		Event:     EVENT_DELETE,
+		GoodId:    good.Id,
+		GoodName:  good.Name,
+		GoodDesc:  good.Desc,
 		GoodPrice: good.Price,
 		GoodImage: good.Image,
-		Quantity: good.Quantity,
-		Money: float64(good.Quantity) * good.Price,
-		Remark: remark,
-		Info: "[删除]: 删除【" + good.Name + "】，删前库存【" + strconv.FormatInt(good.Quantity, 10) + "】。",
-		Status: 1,
+		Quantity:  good.Quantity,
+		Money:     float64(good.Quantity) * good.Price,
+		Remark:    remark,
+		Info:      "[删除]: 删除【" + good.Name + "】，删前库存【" + strconv.FormatInt(good.Quantity, 10) + "】。",
+		Status:    1,
+	}
+	return AddHistory(&his)
+}
+
+func AddRecoverHistory(good *Good, remark string) (id int64, err error) {
+	his := History{
+		Event:     EVENT_RECOVER,
+		GoodId:    good.Id,
+		GoodName:  good.Name,
+		GoodDesc:  good.Desc,
+		GoodPrice: good.Price,
+		GoodImage: good.Image,
+		Quantity:  good.Quantity,
+		Money:     float64(good.Quantity) * good.Price,
+		Remark:    remark,
+		Info:      "[恢复]: 恢复【" + good.Name + "】，库存【" + strconv.FormatInt(good.Quantity, 10) + "】。",
+		Status:    1,
 	}
 	return AddHistory(&his)
 }
 
 // 读取售货历史表
-func getSellsHistory(startTime time.Time, endTime time.Time, name string, order int) (mh []History, err error) {
+func getHistory(startTime time.Time, endTime time.Time, name string, order int) (mh []History, err error) {
 	ormHandle := orm.NewOrmUsingDB(DBNAME)
 	queryCond := ormHandle.QueryTable(&History{})
 
