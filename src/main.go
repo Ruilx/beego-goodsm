@@ -109,12 +109,17 @@ func main() {
 		port = 8080
 	}
 	ips, err := common.GetIPAddresses()
+	var ipsStr []string
 	if err != nil {
 		fmt.Println("Cannot get any IPs from your computer, try 'localhost' or '127.0.0.1' in your browser.")
 		ips := make([]net.IP, 1)
 		ipBytes := make(net.IP, net.IPv4len)
 		copy(ipBytes, []byte{127, 0, 0, 1})
 		ips = append(ips, ipBytes)
+	} else {
+		for _, ip := range ips {
+			ipsStr = append(ipsStr, ip.IP.String())
+		}
 	}
 	ips2, err := common.GetIPAddresses2()
 	if err == nil {
@@ -128,11 +133,22 @@ func main() {
 	if err != nil {
 		fmt.Println("GetActiveIPAddress Failed. Error: " + err.Error())
 		fmt.Println("Cannot get IP from your computer, try 'localhost' in your browser.")
-		ip4 = []byte{127, 0, 0, 1}
+		// ip4 = []byte{127, 0, 0, 1}
+		if ip, err := common.GetActiveIPGateway(); err == nil {
+			if ips4 := common.IpMatch(ips, &ip); len(ips4) > 0 {
+				ip4 = ips4[0]
+			} else {
+				ip4 = []byte{127, 0, 0, 1}
+			}
+		} else {
+			fmt.Println(err)
+			ip4 = []byte{127, 0, 0, 1}
+		}
+
 	}
 	ip := ip4.String()
 	fmt.Println("Connect IPs: ==========")
-	for _, v := range ips {
+	for _, v := range ipsStr {
 		fmt.Print(v + ":" + strconv.Itoa(port))
 		if v == ip {
 			fmt.Println(" <-- [Active]")

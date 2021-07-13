@@ -50,7 +50,7 @@ func QRCodeImageBase64(msg string) (imageBase64 string, err error) {
 	return "data:image/png;base64," + pngBase64, nil
 }
 
-func GetIPAddresses() (ip []string, err error) {
+func GetIPAddresses() (ip []*net.IPNet, err error) {
 	var addrs []net.Addr
 	if addrs, err = net.InterfaceAddrs(); err != nil {
 		return nil, err
@@ -58,7 +58,7 @@ func GetIPAddresses() (ip []string, err error) {
 	for _, value := range addrs {
 		if ipnet, ok := value.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
 			if ipnet.IP.To4() != nil {
-				ip = append(ip, ipnet.IP.String())
+				ip = append(ip, ipnet)
 			}
 		}
 	}
@@ -248,4 +248,16 @@ func Struct2Map(stru interface{}, lowerKey bool) (mp map[string]interface{}, err
 		}
 	}
 	return mp, nil
+}
+
+func IpMatch(ips []*net.IPNet, gateway *net.IP) (matchedIps []net.IP) {
+	for _, ip := range ips {
+		ipStu := ip.IP
+		ipMask := ip.Mask
+		ipGatewayNet := &net.IPNet{IP: *gateway, Mask: ipMask}
+		if ipGatewayNet.Contains(ipStu) {
+			matchedIps = append(matchedIps, ipStu)
+		}
+	}
+	return
 }
