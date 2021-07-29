@@ -25,6 +25,8 @@ import (
 	"github.com/skip2/go-qrcode"
 )
 
+const WiredTime = "2006-01-02 15:04:05"
+
 const (
 	IMAGE_UPLOAD_PATH        = "/static/upload/"
 	IMAGE_ORIGIN_PATH_PREFIX = IMAGE_UPLOAD_PATH + "origin/"

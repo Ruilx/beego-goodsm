@@ -1,6 +1,7 @@
 package models
 
 import (
+	"beego-goodsm/common"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -35,6 +36,17 @@ const (
 	EVENT_EXPORT  = "撤柜"
 	EVENT_DELETE  = "删除"
 	EVENT_RECOVER = "恢复"
+	EVENT_UPDATE  = "更新"
+)
+
+const (
+	STAT_SUM_MONEY    = 0x00000001
+	STAT_SUM_QUANTITY = 0x00000002
+	STAT_SUM_PEOFITS  = 0x00000004
+)
+
+const (
+	ORDERBY_ARGUMENT_ERROR = "error for order, needs one of ORDERBY_ASC, ORDERBY_DESC, ORDERBY_UNKNOWN"
 )
 
 type Good struct {
@@ -99,6 +111,7 @@ func AddGoods(goods *Good) (id int64, err error) {
 	fmt.Println("Good: ", goods)
 	ormHandle := orm.NewOrmUsingDB(DBNAME)
 	id, err = ormHandle.Insert(goods)
+
 	return
 }
 
@@ -122,6 +135,7 @@ func GetGoodsByName(name string) (res *Good, err error) {
 	return result, err
 }
 
+// 通过名字筛选货品
 func GetGoods(name string, order int) (ml []Good, err error) {
 	ormHandle := orm.NewOrmUsingDB(DBNAME)
 	queryCond := ormHandle.QueryTable(&Good{})
@@ -234,6 +248,23 @@ func AddHistory(his *History) (id int64, err error) {
 	return
 }
 
+func AddAddHistory(good *Good, remark string) (id int64, err error){
+	his := History{
+		Event:     EVENT_ADD,
+		GoodId:    good.Id,
+		GoodName:  good.Name,
+		GoodDesc:  good.Desc,
+		GoodPrice: good.Price,
+		GoodImage: good.Image,
+		Quantity:  good.Quantity,
+		Money:     good.Price * float64(good.Quantity),
+		Remark:    remark,
+		Info:      "[登记]: 登记【" + good.Name + "】，数量【" + strconv.FormatInt(good.Quantity, 10) + "】，单价【" + strconv.FormatFloat(good.Price, 'f', 2, 64) + "】，总价【" + strconv.FormatFloat(good.Price * float64(good.Quantity), 'f', 2, 64) + "】。",
+		Status:    1,
+	}
+	return AddHistory(&his)
+}
+
 func AddSellsHistory(good *Good, quantity int64, unitPrice float64, money float64, remark string, balance int64) (id int64, err error) {
 	his := History{
 		Event:     EVENT_SELL,
@@ -321,8 +352,64 @@ func AddRecoverHistory(good *Good, remark string) (id int64, err error) {
 	return AddHistory(&his)
 }
 
+func AddUpdateHistory(good *Good, oldGood *Good, remark string) (id int64, err error) {
+	updateMap := make(map[string]string)
+	if good.Name != oldGood.Name{
+		updateMap["名称"] = "\"" + oldGood.Name + "\" 更改为 \"" + good.Name + "\""
+	}
+	if good.Desc != oldGood.Desc{
+		updateMap["描述"] = "\"" + oldGood.Desc + "\" 更改为 \"" + good.Desc + "\""
+	}
+	if good.Price != oldGood.Price{
+		updateMap["价格"] = "\"" + strconv.FormatFloat(oldGood.Price, 'f', 2, 64) + "\" 更改为 \"" +
+			strconv.FormatFloat(good.Price, 'f', 2, 64) + "\""
+	}
+	if good.Quantity != oldGood.Quantity{
+		updateMap["数量"] = "\"" + strconv.FormatInt(oldGood.Quantity, 10) + "\" 更改为 \"" +
+			strconv.FormatInt(good.Quantity, 10) + "\""
+	}
+	if good.Image != oldGood.Image{
+		updateMap["图片"] = "\"" + oldGood.Image + "\" 更改为 \"" + good.Image + "\""
+	}
+	if good.Deleted != oldGood.Deleted {
+		oldGoodDeleteString := "正常"
+		goodDeleteString := "已恢复"
+		if oldGood.Deleted == true{
+			oldGoodDeleteString = "已删除"
+		}
+		if good.Deleted == true{
+			goodDeleteString = "已删除"
+		}
+		updateMap["删除状态"] = "\"" + oldGoodDeleteString + "\" 更改为 \"" + goodDeleteString + "\""
+	}
+	infoString := "[更新]: "
+	c := 0
+	length := len(updateMap)
+	for key, value := range updateMap{
+		c++
+		infoString += key + ": 由" + value
+		if c < length{
+			infoString += ", "
+		}
+	}
+	his := History{
+		Event:     EVENT_UPDATE,
+		GoodId:    good.Id,
+		GoodName:  good.Name,
+		GoodDesc:  good.Desc,
+		GoodPrice: good.Price,
+		GoodImage: good.Image,
+		Quantity:  good.Quantity,
+		Money:     float64(good.Quantity) * good.Price,
+		Remark:    remark,
+		Info:      infoString,
+		Status:    1,
+	}
+	return AddHistory(&his)
+}
+
 // 读取售货历史表
-func getHistory(startTime time.Time, endTime time.Time, name string, order int) (mh []History, err error) {
+func GoodHistoryByName(startTime time.Time, endTime time.Time, name string, order int) (mh []History, err error) {
 	ormHandle := orm.NewOrmUsingDB(DBNAME)
 	queryCond := ormHandle.QueryTable(&History{})
 
@@ -341,11 +428,111 @@ func getHistory(startTime time.Time, endTime time.Time, name string, order int) 
 	} else if order == ORDERBY_ASC {
 		queryCond = queryCond.OrderBy("create_time")
 	} else {
-		return nil, errors.New("Error for order, needs one of ORDERBY_ASC, ORDERBY_DESC, ORDERBY_UNKNOWN.")
+		return nil, errors.New(ORDERBY_ARGUMENT_ERROR)
 	}
 
 	if _, err = queryCond.All(&mh); err != nil {
 		return nil, err
 	}
 	return mh, nil
+}
+
+func GoodHistory(startTime *time.Time, endTime *time.Time, id int64, order int) (result []History, err error){
+	o := orm.NewOrmUsingDB(DBNAME)
+	qc := o.QueryTable(&History{})
+
+	qc = qc.Filter("create_time__gte", startTime).
+		Filter("create_time__lte", endTime)
+	if id > 0 {
+		qc = qc.Filter("good_id", id)
+	}
+
+	if order == ORDERBY_UNKNOWN || order == ORDERBY_DESC {
+		qc = qc.OrderBy("-create_time")
+	}else if order == ORDERBY_ASC {
+		qc = qc.OrderBy("create_time")
+	}else{
+		return nil, errors.New(ORDERBY_ARGUMENT_ERROR)
+	}
+
+	if _, err = qc.All(&result); err != nil{
+		return nil, err
+	}
+	return result, err
+}
+
+func StatEvent(startTime *time.Time, endTime *time.Time, name string, event string, stat int32) (result map[string]float64, err error) {
+	o := orm.NewOrmUsingDB(DBNAME)
+
+	sql := "Select {SELECT} from history where {WHERE}"
+	sel := make([]string, 0, 3)
+	whe := make([]string, 0, 5)
+
+	whe = append(whe, "event = '" + strings.Replace(event, "'", "", -1) + "'")
+	whe = append(whe, "create_time >= '" + startTime.Format(common.WiredTime) + "'")
+	whe = append(whe, "create_time <= '" + endTime.Format(common.WiredTime) + "'")
+	if name = strings.Replace(name, "'", "\\'", -1); name != "" {
+		whe = append(whe, "name like '%" + name + "%'")
+	}
+	whe = append(whe, "status = 1")
+
+	if stat & STAT_SUM_MONEY > 0 {
+		sel = append(sel, "sum(money) as money")
+	}
+	if stat & STAT_SUM_QUANTITY > 0 {
+		sel = append(sel, "sum(quantity) as quantity")
+	}
+	if stat & STAT_SUM_PEOFITS > 0 {
+		sel = append(sel, "sum(money - good_price) as profits")
+	}
+
+	if len(sel) <= 0{
+		return nil, errors.New("no stat items set")
+	}
+
+	sql = strings.Replace(sql, "{SELECT}", strings.Join(sel, ","), 1)
+	sql = strings.Replace(sql, "{WHERE}", strings.Join(whe, " and "), 1)
+
+	resultInterface := make([]orm.Params, 0)
+	_, err = o.Raw(sql).Values(&resultInterface)
+
+	if err != nil{
+		return
+	}
+
+	if len(resultInterface) <= 0 {
+		return nil, errors.New("database return nil statistic results")
+	}
+
+	resultFirstRow := resultInterface[0]
+
+	result = make(map[string]float64)
+
+	for key, value := range resultFirstRow{
+		result[key], err = strconv.ParseFloat(value.(string), 64)
+		if err != nil{
+			return nil, err
+		}
+	}
+	return
+}
+
+func StatSoldGoods(startTime *time.Time, endTime *time.Time, name string, stat int32) (result map[string]float64, err error) {
+	return StatEvent(startTime, endTime, name, EVENT_SELL, stat)
+}
+
+func StatImportedGoods(startTime *time.Time, endTime *time.Time, name string, stat int32) (result map[string]float64, err error) {
+	return StatEvent(startTime, endTime, name, EVENT_IMPORT, stat)
+}
+
+func StatExportedGoods(startTime *time.Time, endTime *time.Time, name string, stat int32) (result map[string]float64, err error) {
+	return StatEvent(startTime, endTime, name, EVENT_EXPORT, stat)
+}
+
+func StatDeletedGoods(startTime *time.Time, endTime *time.Time, name string, stat int32) (result map[string]float64, err error) {
+	return StatEvent(startTime, endTime, name, EVENT_DELETE, stat)
+}
+
+func StatRecoveredGoods(startTime *time.Time, endTime *time.Time, name string, stat int32) (result map[string]float64, err error){
+	return StatEvent(startTime, endTime, name, EVENT_RECOVER, stat)
 }

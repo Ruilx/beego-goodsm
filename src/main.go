@@ -121,14 +121,6 @@ func main() {
 			ipsStr = append(ipsStr, ip.IP.String())
 		}
 	}
-	ips2, err := common.GetIPAddresses2()
-	if err == nil {
-		fmt.Println("-------------------")
-		for _, i := range ips2 {
-			fmt.Println(i)
-		}
-		fmt.Println("-------------------")
-	}
 	ip4, err := common.GetActiveIPAddress()
 	if err != nil {
 		fmt.Println("GetActiveIPAddress Failed. Error: " + err.Error())

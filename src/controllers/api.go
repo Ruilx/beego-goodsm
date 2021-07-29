@@ -219,16 +219,35 @@ func (c *MainController) AddGood() {
 		good.Image = imageSaveFilename
 	}
 
-	id, err := models.AddGoods(&good)
+	var resultId int64
+	var resultHisId int64
+
+	resultId, err = models.AddGoods(&good)
 	if err != nil {
 		c.log.Error("[AddGoods] Database error: " + err.Error())
 		c.AjaxSetResult(500, "database error: "+err.Error())
 		return
 	}
 
-	c.res.Data["id"] = id
+	// writing sell history
+	tryTimes := 5
+	i := 0
+	for i = 0; i < tryTimes; i++ {
+		if resultHisId, err = models.AddAddHistory(&good, "新货品登记"); err == nil {
+			break
+		}
+	}
+	if i >= tryTimes && err != nil {
+		c.log.Error("cannot insert good history, db error: " + err.Error())
+		c.AjaxSetResult(500, "cannot insert good history, db error: "+err.Error())
+		return
+	}
+
+	c.res.Data["result_id"] = resultId
+	c.res.Data["result_his_id"] = resultHisId
 	c.AjaxSetResult(200, "success")
 	return
+
 }
 
 func (c *MainController) UpdGood() {
