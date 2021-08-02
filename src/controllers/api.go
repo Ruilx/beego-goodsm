@@ -3,6 +3,7 @@ package controllers
 import (
 	"beego-goodsm/common"
 	"beego-goodsm/models"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
@@ -74,11 +75,26 @@ func (c *MainController) Post() {
 		c.ExportGood()
 	case "rcv": // Recover Goods
 		c.RecoverGood()
+
+	case "statsell": //今日售出/本月售出
+		c.StatSell()
 	default:
 		c.res.Msg = "Not a valid operation"
 	}
 
 	fmt.Println(c.res)
+}
+
+func (c *MainController) StatSell(){
+	idJson := c.Ctx.Input.RequestBody
+	var ids []int64
+	err := json.Unmarshal(idJson, &ids)
+	if err != nil{
+		c.AjaxSetResult(400, err.Error())
+		return
+	}
+
+
 }
 
 func (c *MainController) GetGoods() {
@@ -90,6 +106,7 @@ func (c *MainController) GetGoods() {
 	var err error
 	if goods, err = models.GetGoods(name, models.ORDERBY_ASC); err != nil {
 		c.AjaxSetResult(500, err.Error())
+		return
 	}
 	fmt.Println(goods)
 

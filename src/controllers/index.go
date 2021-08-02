@@ -29,6 +29,12 @@ func (c *IndexController) Get() {
 		c.Data["err"] = "系统错误, 请检查系统日志文件输出"
 		return
 	}
+
+	c.Data["isMobile"] = false
+	ua := c.Ctx.Input.Header("User-Agent")
+	if common.IsMobileUsingUserAgent(ua){
+		c.Data["isMobile"] = true
+	}
 	var goods []map[string]interface{}
 	for _, g := range ml {
 		good, err := common.Struct2Map(g, true)

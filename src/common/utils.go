@@ -263,3 +263,35 @@ func IpMatch(ips []*net.IPNet, gateway *net.IP) (matchedIps []net.IP) {
 	}
 	return
 }
+
+func IsMobileUsingUserAgent(ua string) (isMobile bool) {
+	uaPartList := strings.Split(ua, " ")
+	isMobile = true
+	final := false
+	for _, uaPart := range uaPartList{
+		if strings.Contains(uaPart, "iPhone"){
+			isMobile = true
+			final = true
+		}
+		if strings.Contains(uaPart, "Android"){
+			isMobile = true
+			final = true
+		}
+		if strings.Contains(uaPart, "Mobile"){
+			isMobile = true
+			final = true
+		}
+		if strings.Contains(uaPart, "Windows"){
+			isMobile = false
+			final = true
+		}
+		if strings.Contains(uaPart, "Macintosh"){
+			isMobile = false
+			final = true
+		}
+		if final{
+			return
+		}
+	}
+	return
+}

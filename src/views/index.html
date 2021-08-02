@@ -75,13 +75,15 @@
             <p>现在存库中尚没有货物登记, 可以点击下方按钮或标题栏中"添加货物"增加一条记录.</p>
             <a class="btn btn-primary btn-lg" href="/add" role="button">添加货物</a>
         {{end}}
-        {{if not (compare $qrcodeIp ``)}}
-            {{if not (compare $qrcodeB64 ``)}}
-                <hr class="my-4">
-                <div class="d-flex flex-row justify-content-between">
-                    <p class="">访问本系统URL: <strong>{{$qrcodeIp}}</strong>, 手机访问请扫描右方二维码:</p>
-                    <img class="img-thumbnail d-none" id="qrcode" alt="qrcode" data-crs="{{$qrcodeB64}}" src="">
-                </div>
+        {{if not .isMobile}}
+            {{if not (compare $qrcodeIp ``)}}
+                {{if not (compare $qrcodeB64 ``)}}
+                    <hr class="my-4">
+                    <div class="d-flex flex-row justify-content-between">
+                        <p class="">访问本系统URL: <strong>{{$qrcodeIp}}</strong>, 手机访问请扫描右方二维码:</p>
+                        <img class="img-thumbnail d-none" id="qrcode" alt="qrcode" data-crs="{{$qrcodeB64}}" src="">
+                    </div>
+                {{end}}
             {{end}}
         {{end}}
         <noscript>
