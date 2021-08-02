@@ -107,6 +107,8 @@ func init() {
 }
 
 // 添加货物
+// 输入货品结构体
+// 返回插入id和err
 func AddGoods(goods *Good) (id int64, err error) {
 	fmt.Println("Good: ", goods)
 	ormHandle := orm.NewOrmUsingDB(DBNAME)
@@ -116,6 +118,8 @@ func AddGoods(goods *Good) (id int64, err error) {
 }
 
 // 按照ID获取货物信息
+// 输入货物ID
+// 返回货物结构体和err
 func GetGoodsById(id int32) (res *Good, err error) {
 	ormHandle := orm.NewOrmUsingDB(DBNAME)
 	result := &Good{Id: id}
@@ -126,6 +130,8 @@ func GetGoodsById(id int32) (res *Good, err error) {
 }
 
 // 按照名称获取货物信息
+// 输入货物名称(精确)
+// 返回货物结构体和err
 func GetGoodsByName(name string) (res *Good, err error) {
 	ormHandle := orm.NewOrmUsingDB(DBNAME)
 	result := &Good{Name: name}
@@ -136,6 +142,8 @@ func GetGoodsByName(name string) (res *Good, err error) {
 }
 
 // 通过名字筛选货品
+// 输入货品名称(关键字)
+// 返回货物结构体列表和err
 func GetGoods(name string, order int) (ml []Good, err error) {
 	ormHandle := orm.NewOrmUsingDB(DBNAME)
 	queryCond := ormHandle.QueryTable(&Good{})
@@ -156,6 +164,7 @@ func GetGoods(name string, order int) (ml []Good, err error) {
 }
 
 // 获得所有货物
+// (不常用)
 func GetGoods2(query map[string]string, fields []string, sortBy []string, order []int, offset int64, limit int64) (ml []interface{}, err error) {
 	ormHandle := orm.NewOrmUsingDB(DBNAME)
 	queryCond := ormHandle.QueryTable(&Good{})
@@ -222,6 +231,8 @@ func GetGoods2(query map[string]string, fields []string, sortBy []string, order 
 }
 
 // 按照ID更新货物 ID写至good.Id
+// 输入货品新的内容, 以及各种列名
+// 返回更新id和err
 func UpdateGoodsById(good *Good, col ...string) (id int64, err error) {
 	ormHandle := orm.NewOrmUsingDB(DBNAME)
 	idReady := Good{Id: good.Id}
@@ -232,6 +243,8 @@ func UpdateGoodsById(good *Good, col ...string) (id int64, err error) {
 }
 
 // 按照ID删除货物
+// 输入删除货品的id
+// 返回删除的dbId和err
 func DeleteGoodsById(id int32) (dbId int64, err error) {
 	ormHandle := orm.NewOrm()
 	good := Good{Id: id}
@@ -242,12 +255,17 @@ func DeleteGoodsById(id int32) (dbId int64, err error) {
 }
 
 // 写入售货历史表
+// 输入新增的history
+// 返回id和err
 func AddHistory(his *History) (id int64, err error) {
 	ormHandle := orm.NewOrmUsingDB(DBNAME)
 	id, err = ormHandle.Insert(his)
 	return
 }
 
+// 写入增加货品历史记录
+// 输入: 货品结构体, 备注
+// 返回: id和err
 func AddAddHistory(good *Good, remark string) (id int64, err error){
 	his := History{
 		Event:     EVENT_ADD,
@@ -265,6 +283,9 @@ func AddAddHistory(good *Good, remark string) (id int64, err error){
 	return AddHistory(&his)
 }
 
+// 写入售出历史记录
+// 输入: 售出货物快照, 数量, 单价, 总价, 备注, 余量
+// 返回: id和err
 func AddSellsHistory(good *Good, quantity int64, unitPrice float64, money float64, remark string, balance int64) (id int64, err error) {
 	his := History{
 		Event:     EVENT_SELL,
@@ -282,6 +303,9 @@ func AddSellsHistory(good *Good, quantity int64, unitPrice float64, money float6
 	return AddHistory(&his)
 }
 
+// 写入进货历史记录
+// 输入: 进货货品快照, 数量, 备注, 余量
+// 返回: id和err
 func AddImportHistory(good *Good, quantity int64, remark string, balance int64) (id int64, err error) {
 	money := good.Price * float64(quantity) // 进货物品所产生的定价价值
 	his := History{
@@ -300,6 +324,9 @@ func AddImportHistory(good *Good, quantity int64, remark string, balance int64) 
 	return AddHistory(&his)
 }
 
+// 写入撤柜历史记录
+// 输入: 撤柜货品快照, 数量, 备注, 余量
+// 返回: id和err
 func AddExportHistory(good *Good, quantity int64, remark string, balance int64) (id int64, err error) {
 	money := good.Price * float64(quantity)
 	his := History{
@@ -318,6 +345,9 @@ func AddExportHistory(good *Good, quantity int64, remark string, balance int64) 
 	return AddHistory(&his)
 }
 
+// 写入删除货品历史记录
+// 输入: 删除货品快照, 备注
+// 返回: id和err
 func AddDeleteHistory(good *Good, remark string) (id int64, err error) {
 	his := History{
 		Event:     EVENT_DELETE,
@@ -335,6 +365,9 @@ func AddDeleteHistory(good *Good, remark string) (id int64, err error) {
 	return AddHistory(&his)
 }
 
+// 写入恢复货品历史记录
+// 输入: 恢复货品快照, 备注
+// 返回: id和err
 func AddRecoverHistory(good *Good, remark string) (id int64, err error) {
 	his := History{
 		Event:     EVENT_RECOVER,
@@ -352,6 +385,9 @@ func AddRecoverHistory(good *Good, remark string) (id int64, err error) {
 	return AddHistory(&his)
 }
 
+// 写入更新货品历史记录
+// 输入: 更新货品快照, 旧货品快照, 备注
+// 返回: id和err
 func AddUpdateHistory(good *Good, oldGood *Good, remark string) (id int64, err error) {
 	updateMap := make(map[string]string)
 	if good.Name != oldGood.Name{
@@ -409,6 +445,8 @@ func AddUpdateHistory(good *Good, oldGood *Good, remark string) (id int64, err e
 }
 
 // 读取售货历史表
+// 输入: 开始时间, 结束时间, 名称, 排序(ORDER)
+// 返回: history序列, err
 func GoodHistoryByName(startTime time.Time, endTime time.Time, name string, order int) (mh []History, err error) {
 	ormHandle := orm.NewOrmUsingDB(DBNAME)
 	queryCond := ormHandle.QueryTable(&History{})
