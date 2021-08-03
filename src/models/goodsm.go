@@ -475,6 +475,9 @@ func GoodHistoryByName(startTime time.Time, endTime time.Time, name string, orde
 	return mh, nil
 }
 
+// 使用货品ID取得售货历史
+// 输入: 开始时间, 结束时间, 货品ID, 顺序
+// 输出: history列表, err
 func GoodHistory(startTime *time.Time, endTime *time.Time, id int64, order int) (result []History, err error){
 	o := orm.NewOrmUsingDB(DBNAME)
 	qc := o.QueryTable(&History{})
@@ -499,6 +502,9 @@ func GoodHistory(startTime *time.Time, endTime *time.Time, id int64, order int) 
 	return result, err
 }
 
+// 售货历史通过Event获取
+// 使用下面4个函数获得相应的售货历史事件的实际值
+// 输入: 开始时间, 结束时间, 物品名称(模糊搜索), event, 想要获取哪些stat
 func StatEvent(startTime *time.Time, endTime *time.Time, name string, event string, stat int32) (result map[string]float64, err error) {
 	o := orm.NewOrmUsingDB(DBNAME)
 
@@ -555,22 +561,27 @@ func StatEvent(startTime *time.Time, endTime *time.Time, name string, event stri
 	return
 }
 
+// 售卖历史统计
 func StatSoldGoods(startTime *time.Time, endTime *time.Time, name string, stat int32) (result map[string]float64, err error) {
 	return StatEvent(startTime, endTime, name, EVENT_SELL, stat)
 }
 
+// 进货统计
 func StatImportedGoods(startTime *time.Time, endTime *time.Time, name string, stat int32) (result map[string]float64, err error) {
 	return StatEvent(startTime, endTime, name, EVENT_IMPORT, stat)
 }
 
+// 撤柜统计
 func StatExportedGoods(startTime *time.Time, endTime *time.Time, name string, stat int32) (result map[string]float64, err error) {
 	return StatEvent(startTime, endTime, name, EVENT_EXPORT, stat)
 }
 
+// 删除统计
 func StatDeletedGoods(startTime *time.Time, endTime *time.Time, name string, stat int32) (result map[string]float64, err error) {
 	return StatEvent(startTime, endTime, name, EVENT_DELETE, stat)
 }
 
+//恢复统计
 func StatRecoveredGoods(startTime *time.Time, endTime *time.Time, name string, stat int32) (result map[string]float64, err error){
 	return StatEvent(startTime, endTime, name, EVENT_RECOVER, stat)
 }

@@ -653,7 +653,7 @@
                 req_param = {
                     id: good_id,
                     remark: good_remark,
-                    op: "remove"
+                    op: "del"
                 };
             if(good_id === ""){
                 alert_msg(good_remove_modal, "本对话框展示无效, 没有设定ID.");
@@ -665,14 +665,16 @@
             }
             set_enable(good_remove_modal, false);
             let ajax_handle = ajax_gen("/api", req_param, function(res_data, textStatus, jqXHR){
-                let data = res_data.data;
-                if(data === "success"){
+                let data = res_data.data,
+                    code = res_data.code,
+                    msg  = res_data['msg'];
+                if(code === 200){
                     good_remove_modal.modal("hide");
                     show_msg_toast("<h3>删除成功! 请稍候...</h3>");
                     to_href();
                     return;
                 }else{
-                    alert_msg(good_remove_modal, "服务器未正常返回回执, 请联系管理员.<br>" + get_string(res_data));
+                    alert_msg(good_remove_modal, "服务器未正常返回回执, 请联系管理员.<br>" + get_string(msg));
                 }
                 set_enable(good_remove_modal, true);
             }, ajax_failed_handler, function(){
@@ -689,7 +691,7 @@
                     id: good_id,
                     quantity: good_quantity,
                     remark: good_remark,
-                    op: "export",
+                    op: "exp",
                 };
             if(good_id === ""){
                 alert_msg(good_export_modal, "本对话框展示无效, 没有设定ID.");
@@ -731,7 +733,7 @@
                     id: good_id,
                     quantity: good_quantity,
                     remark: good_remark,
-                    op: "import",
+                    op: "imp",
                 };
             if(good_id === ""){
                 alert_msg(good_import_modal, "本对话框展示无效, 没有设定ID.");
