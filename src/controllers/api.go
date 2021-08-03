@@ -76,7 +76,7 @@ func (c *MainController) Post() {
 	case "rcv": // Recover Goods
 		c.RecoverGood()
 
-	case "statsell": //今日售出/本月售出
+	case "statsel": //今日售出/本月售出
 		c.StatSell()
 	default:
 		c.res.Msg = "Not a valid operation"
@@ -86,15 +86,16 @@ func (c *MainController) Post() {
 }
 
 func (c *MainController) StatSell(){
-	idJson := c.Ctx.Input.RequestBody
+	idJson := c.Ctx.Input.Query("ids")
 	var ids []int64
-	err := json.Unmarshal(idJson, &ids)
+	err := json.Unmarshal([]byte(idJson), &ids)
 	if err != nil{
 		c.AjaxSetResult(400, err.Error())
 		return
 	}
 
 
+	c.AjaxSetResult(200, idJson)
 }
 
 func (c *MainController) GetGoods() {

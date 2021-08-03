@@ -502,15 +502,41 @@ func GoodHistory(startTime *time.Time, endTime *time.Time, id int64, order int) 
 	return result, err
 }
 
+func StatEventByGoodIds(startTime *time.Time, endTime *time.Time, ids []int64, event string, stat int32) (result map[int64]map[string]float64, err error){
+	o := orm.NewOrmUsingDB(DBNAME)
+
+	sql := "Select {SELECT} from history where {WHERE} group by {GROUP_BY}"
+	sel := make([]string, 0, 4)
+	whe := make([]string, 0, 5)
+	grpby := make([]string, 0, 1)
+
+	whe = append(whe, "event = '" + strings.Replace(event, "'", "", -1) + "'")
+	whe = append(whe, "create_time >= '" + startTime.Format(common.WiredTime) + "'")
+	whe = append(whe, "create_time <= '" + endTime.Format(common.WiredTime) + "'")
+	if ids != nil && len(ids) > 0{
+		idStr := make([]string, len(ids))
+		for _, id := range ids{
+			idStr = append(idStr, strconv.FormatInt(id, 10))
+		}
+		whe = append(whe, "id in (" + strings.Join(idStr, ",") + ")")
+	}
+	whe = append(whe, "status = 1")
+
+	sel = append(sel, "id as id")
+	grpby = append(grpby, "id")
+	if stat & STAT_SUM_MONEY
+}
+
 // 售货历史通过Event获取
 // 使用下面4个函数获得相应的售货历史事件的实际值
 // 输入: 开始时间, 结束时间, 物品名称(模糊搜索), event, 想要获取哪些stat
-func StatEvent(startTime *time.Time, endTime *time.Time, name string, event string, stat int32) (result map[string]float64, err error) {
+func StatEvent(startTime *time.Time, endTime *time.Time, name string, event string, stat int32) (result map[int64]map[string]float64, err error) {
 	o := orm.NewOrmUsingDB(DBNAME)
 
-	sql := "Select {SELECT} from history where {WHERE}"
-	sel := make([]string, 0, 3)
+	sql := "Select {SELECT} from history where {WHERE} group by {GROUP_BY}"
+	sel := make([]string, 0, 4)
 	whe := make([]string, 0, 5)
+	grpby := make([]string, 0, 1)
 
 	whe = append(whe, "event = '" + strings.Replace(event, "'", "", -1) + "'")
 	whe = append(whe, "create_time >= '" + startTime.Format(common.WiredTime) + "'")
@@ -520,6 +546,8 @@ func StatEvent(startTime *time.Time, endTime *time.Time, name string, event stri
 	}
 	whe = append(whe, "status = 1")
 
+	sel = append(sel, "id as id")
+	grpby = append(grpby, "id")
 	if stat & STAT_SUM_MONEY > 0 {
 		sel = append(sel, "sum(money) as money")
 	}
@@ -536,6 +564,7 @@ func StatEvent(startTime *time.Time, endTime *time.Time, name string, event stri
 
 	sql = strings.Replace(sql, "{SELECT}", strings.Join(sel, ","), 1)
 	sql = strings.Replace(sql, "{WHERE}", strings.Join(whe, " and "), 1)
+	sql = strings.Replace(sql, "{GROUP_BY}", strings.Join(grpby, ","), 1)
 
 	resultInterface := make([]orm.Params, 0)
 	_, err = o.Raw(sql).Values(&resultInterface)
@@ -548,40 +577,55 @@ func StatEvent(startTime *time.Time, endTime *time.Time, name string, event stri
 		return nil, errors.New("database return nil statistic results")
 	}
 
-	resultFirstRow := resultInterface[0]
+	result = make(map[int64]map[string]float64)
 
-	result = make(map[string]float64)
-
-	for key, value := range resultFirstRow{
-		result[key], err = strconv.ParseFloat(value.(string), 64)
-		if err != nil{
-			return nil, err
+	for i, r := range resultInterface{
+		// result[i] = make(map[string]float64)
+		goodId, ok := r["id"]
+		if !ok {
+			fmt.Println("models.StatEvent SQL result row[" + strconv.Itoa(i) + "] not has key 'id', ignored.")
+			continue
+		}
+		goodIdInt, ok := goodId.(int64)
+		if !ok {
+			fmt.Println("models.StatEvent SQL result row[" + strconv.Itoa(i) + "] key 'id' cannot parse to int: '" + goodId.(string) + "', ignored.")
+			continue
+		}
+		for key, value := range r{
+			result[goodIdInt][key], err = strconv.ParseFloat(value.(string), 64)
+			if err != nil{
+				result[goodIdInt][key] = 0
+			}
 		}
 	}
 	return
 }
 
 // 售卖历史统计
-func StatSoldGoods(startTime *time.Time, endTime *time.Time, name string, stat int32) (result map[string]float64, err error) {
+func StatSoldGoods(startTime *time.Time, endTime *time.Time, name string, stat int32) (result map[int64]map[string]float64, err error) {
 	return StatEvent(startTime, endTime, name, EVENT_SELL, stat)
 }
 
 // 进货统计
-func StatImportedGoods(startTime *time.Time, endTime *time.Time, name string, stat int32) (result map[string]float64, err error) {
+func StatImportedGoods(startTime *time.Time, endTime *time.Time, name string, stat int32) (result map[int64]map[string]float64, err error) {
 	return StatEvent(startTime, endTime, name, EVENT_IMPORT, stat)
 }
 
 // 撤柜统计
-func StatExportedGoods(startTime *time.Time, endTime *time.Time, name string, stat int32) (result map[string]float64, err error) {
+func StatExportedGoods(startTime *time.Time, endTime *time.Time, name string, stat int32) (result map[int64]map[string]float64, err error) {
 	return StatEvent(startTime, endTime, name, EVENT_EXPORT, stat)
 }
 
 // 删除统计
-func StatDeletedGoods(startTime *time.Time, endTime *time.Time, name string, stat int32) (result map[string]float64, err error) {
+func StatDeletedGoods(startTime *time.Time, endTime *time.Time, name string, stat int32) (result map[int64]map[string]float64, err error) {
 	return StatEvent(startTime, endTime, name, EVENT_DELETE, stat)
 }
 
 //恢复统计
-func StatRecoveredGoods(startTime *time.Time, endTime *time.Time, name string, stat int32) (result map[string]float64, err error){
+func StatRecoveredGoods(startTime *time.Time, endTime *time.Time, name string, stat int32) (result map[int64]map[string]float64, err error){
 	return StatEvent(startTime, endTime, name, EVENT_RECOVER, stat)
+}
+
+func StatSellByGoodIds(startTime *time.Time, endTime *time.Time, ids []int64,  stat int32){
+
 }
