@@ -33,12 +33,12 @@
                 <a class="nav-link" href="#">主页 <span class="sr-only">(激活)</span></a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#">添加货物</a>
+                <a class="nav-link" href="/add">添加货物</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#">售货历史</a>
+                <a class="nav-link" href="/his">售货历史</a>
             </li>
-            <li class="nav-item dropdown">
+            <li class="nav-item dropdown d-none">
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     高级操作
                 </a>
@@ -709,14 +709,16 @@
             }
             set_enable(good_export_modal, false);
             let ajax_handle = ajax_gen("/api", req_param, function(res_data, textStatus, jqXHR){
-                let data = res_data.data;
-                if(data === "success"){
+                let data = res_data.data,
+                    code = res_data.code,
+                    msg  = res_data['msg'];
+                if(code === 200){
                     good_export_modal.modal("hide");
                     show_msg_toast("<h3>撤柜成功! 请稍候...</h3>");
                     to_href();
                     return;
                 }else{
-                    alert_msg(good_export_modal, "服务器未正常返回回执, 请联系管理员.<br>" + get_string(res_data));
+                    alert_msg(good_export_modal, "服务器未正常返回回执, 请联系管理员.<br>" + get_string(msg));
                 }
                 set_enable(good_export_modal, true);
             }, ajax_failed_handler, function(){
@@ -746,14 +748,16 @@
             inventory_change();
             set_enable(good_import_modal, false);
             let ajax_handle = ajax_gen("/api", req_param, function(res_data, textStatus, jqXHR){
-                let data = res_data.data;
-                if(data === "success"){
+                let data = res_data.data,
+                    code = res_data.code,
+                    msg  = res_data['msg'];
+                if(code === 200){
                     good_import_modal.modal("hide");
                     show_msg_toast("<h3>进货成功! 请稍候...</h3>");
                     to_href();
                     return;
                 }else{
-                    alert_msg(good_import_modal, "服务器未正常返回回执, 请联系管理员.<br>" + get_string(res_data));
+                    alert_msg(good_import_modal, "服务器未正常返回回执, 请联系管理员.<br>" + get_string(msg));
                 }
                 set_enable(good_import_modal, true);
             }, ajax_failed_handler, function(){
@@ -803,15 +807,16 @@
             price_quantity_change();
             set_enable(good_sell_modal, false);
             let ajax_handle = ajax_gen("/api", req_param, function(res_data, textStatus, jqXHR){
-                let data = res_data.data;
-                //if(typeof(data.result_id) !== "undefined" && data.result_id == good_id){
-                if(typeof(res_data.msg) !== "undefined" && res_data.msg === "success"){
+                let data = res_data.data,
+                    code = res_data.code,
+                    msg  = res_data['msg'];
+                if(code === 200){
                     good_sell_modal.modal("hide");
                     show_msg_toast("<h3>出售成功! 请稍候...</h3>");
                     to_href();
                     return;
                 }else{
-                    alert_msg(good_sell_modal, "服务器未正常返回回执, 请联系管理员.<br>" + get_string(res_data));
+                    alert_msg(good_sell_modal, "服务器未正常返回回执, 请联系管理员.<br>" + get_string(msg));
                 }
                 set_enable(good_sell_modal, true);
             }, ajax_failed_handler, function(){

@@ -278,13 +278,13 @@
             </div>
             <div class="modal-body">
                 系统尝试添加货品, 但遇到了问题, 请参见以下信息, 修复后可再试一次.
-                <div class="card card-body">
+                <div class="card card-body msg">
                     错误信息...
                 </div>
                 如果您能自行确定问题所在, 您可尝试自行修复, 如需帮助, 请将错误信息复制后发送给管理员.
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary">返回主页</button>
+                <button type="button" class="btn btn-secondary" id="failed_to_home">返回主页</button>
                 <button type="button" class="btn btn-primary" data-dismiss="modal">回到页面</button>
             </div>
         </div>
@@ -349,19 +349,34 @@
 
         set_loading_mask(loadingMask, true);
 
-        ajax_gen(action, formData, function(){
+        ajax_gen(action, formData, function(ret_data, textStatus, jqXHR){
             set_loading_mask(loadingMask, false);
             let id = $("#goods_id"),
-                modal_for_success = $("#modal_for_success");
-            if (parseInt(id) == id){
-                window.location.reload();
-                return;
+                modal_for_success = $("#modal_for_success"),
+                modal_for_failed = $("#model_for_failed"),
+                code = ret_data.code,
+                msg = ret_data['msg'];
+            if (code === 200) {
+                if (parseInt(id) == id) {
+                    window.location.reload();
+                    return;
+                }
+                modal_for_success.modal({
+                    backdrop: "static",
+                    focus: true,
+                    show: true
+                });
+            }else{
+                if(msg !== ""){
+                    msg = "服务器未回复任何错误信息.";
+                }
+                modal_for_failed.find(".msg").html(msg);
+                modal_for_failed.modal({
+                    backdrop: "static",
+                    focus: true,
+                    show: true
+                });
             }
-            modal_for_success.modal({
-                backdrop: "static",
-                focus: true,
-                show: true
-            });
         }, ajax_failed_handler, function(){
             set_loading_mask(loadingMask, false);
         }, this, "post", {processData: false, contentType: false});
@@ -441,6 +456,9 @@
     $("#to_next").click(function(){
         window.location.href = "/add";
     });
+    $("#failed_to_home").click(function(){
+        window.location.href = "/";
+    })
 </script>
 </body>
 </html>
