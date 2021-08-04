@@ -42,7 +42,15 @@ const (
 const (
 	STAT_SUM_MONEY    = 0x00000001
 	STAT_SUM_QUANTITY = 0x00000002
-	STAT_SUM_PEOFITS  = 0x00000004
+	STAT_SUM_PROFITS  = 0x00000004
+	STAT_COUNT_ITEMS  = 0x00000008
+)
+
+const (
+	STAT_SUM_MONEY_KEY    = "sum_money"
+	STAT_SUM_QUANTITY_KEY = "sum_quantity"
+	STAT_SUM_PROFITS_KEY  = "sum_profits"
+	STAT_COUNT_ITEMS_KEY  = "count_items"
 )
 
 const (
@@ -502,34 +510,10 @@ func GoodHistory(startTime *time.Time, endTime *time.Time, id int64, order int) 
 	return result, err
 }
 
-func StatEventByGoodIds(startTime *time.Time, endTime *time.Time, ids []int64, event string, stat int32) (result map[int64]map[string]float64, err error){
-	o := orm.NewOrmUsingDB(DBNAME)
-
-	sql := "Select {SELECT} from history where {WHERE} group by {GROUP_BY}"
-	sel := make([]string, 0, 4)
-	whe := make([]string, 0, 5)
-	grpby := make([]string, 0, 1)
-
-	whe = append(whe, "event = '" + strings.Replace(event, "'", "", -1) + "'")
-	whe = append(whe, "create_time >= '" + startTime.Format(common.WiredTime) + "'")
-	whe = append(whe, "create_time <= '" + endTime.Format(common.WiredTime) + "'")
-	if ids != nil && len(ids) > 0{
-		idStr := make([]string, len(ids))
-		for _, id := range ids{
-			idStr = append(idStr, strconv.FormatInt(id, 10))
-		}
-		whe = append(whe, "id in (" + strings.Join(idStr, ",") + ")")
-	}
-	whe = append(whe, "status = 1")
-
-	sel = append(sel, "id as id")
-	grpby = append(grpby, "id")
-	if stat & STAT_SUM_MONEY
-}
-
 // 售货历史通过Event获取
 // 使用下面4个函数获得相应的售货历史事件的实际值
 // 输入: 开始时间, 结束时间, 物品名称(模糊搜索), event, 想要获取哪些stat
+// 输出: map[id] map[summingitem] value
 func StatEvent(startTime *time.Time, endTime *time.Time, name string, event string, stat int32) (result map[int64]map[string]float64, err error) {
 	o := orm.NewOrmUsingDB(DBNAME)
 
@@ -549,13 +533,16 @@ func StatEvent(startTime *time.Time, endTime *time.Time, name string, event stri
 	sel = append(sel, "id as id")
 	grpby = append(grpby, "id")
 	if stat & STAT_SUM_MONEY > 0 {
-		sel = append(sel, "sum(money) as money")
+		sel = append(sel, "sum(money) as " + STAT_SUM_MONEY_KEY)
 	}
 	if stat & STAT_SUM_QUANTITY > 0 {
-		sel = append(sel, "sum(quantity) as quantity")
+		sel = append(sel, "sum(quantity) as " + STAT_SUM_QUANTITY_KEY)
 	}
-	if stat & STAT_SUM_PEOFITS > 0 {
-		sel = append(sel, "sum(money - good_price) as profits")
+	if stat & STAT_SUM_PROFITS > 0 {
+		sel = append(sel, "sum(money - good_price) as " + STAT_SUM_PROFITS_KEY)
+	}
+	if stat & STAT_COUNT_ITEMS > 0 {
+		sel = append(sel, "count(1) as " + STAT_COUNT_ITEMS_KEY)
 	}
 
 	if len(sel) <= 0{
@@ -626,6 +613,85 @@ func StatRecoveredGoods(startTime *time.Time, endTime *time.Time, name string, s
 	return StatEvent(startTime, endTime, name, EVENT_RECOVER, stat)
 }
 
-func StatSellByGoodIds(startTime *time.Time, endTime *time.Time, ids []int64,  stat int32){
+func StatSellGoodsByGoodId(startTime *time.Time, endTime *time.Time, ids []int64, stat int32) (result map[int64]map[string]float64, err error){
+	return StatEventByGoodIds(startTime, endTime, ids, EVENT_SELL, stat)
+}
 
+func StatEventByGoodIds(startTime *time.Time, endTime *time.Time, ids []int64, event string, stat int32) (result map[int64]map[string]float64, err error){
+	o := orm.NewOrmUsingDB(DBNAME)
+
+	sql := "Select {SELECT} from history where {WHERE} group by {GROUP_BY}"
+	sel := make([]string, 0, 4)
+	whe := make([]string, 0, 5)
+	grpby := make([]string, 0, 1)
+
+	whe = append(whe, "event = '" + strings.Replace(event, "'", "", -1) + "'")
+	whe = append(whe, "create_time >= '" + startTime.Format(common.WiredTime) + "'")
+	whe = append(whe, "create_time <= '" + endTime.Format(common.WiredTime) + "'")
+	if ids != nil && len(ids) > 0{
+		idStr := make([]string, 0, len(ids))
+		for _, id := range ids{
+			idStr = append(idStr, strconv.FormatInt(id, 10))
+		}
+		fmt.Println(idStr)
+		whe = append(whe, "id in (" + strings.Join(idStr, ",") + ")")
+	}
+	whe = append(whe, "status = 1")
+
+	sel = append(sel, "id as id")
+	grpby = append(grpby, "id")
+	if stat & STAT_SUM_MONEY > 0 {
+		sel = append(sel, "sum(money) as " + STAT_SUM_MONEY_KEY)
+	}
+	if stat & STAT_SUM_QUANTITY > 0 {
+		sel = append(sel, "sum(quantity) as " + STAT_SUM_QUANTITY_KEY)
+	}
+	if stat & STAT_SUM_PROFITS > 0 {
+		sel = append(sel, "sum(money - good_price) as " + STAT_SUM_PROFITS_KEY)
+	}
+	if stat & STAT_COUNT_ITEMS > 0 {
+		sel = append(sel, "count(1) as " + STAT_COUNT_ITEMS_KEY)
+	}
+
+	if len(sel) <= 0{
+		return nil, errors.New("no stat items set")
+	}
+
+	sql = strings.Replace(sql, "{SELECT}", strings.Join(sel, ","), 1)
+	sql = strings.Replace(sql, "{WHERE}", strings.Join(whe, " and "), 1)
+	sql = strings.Replace(sql, "{GROUP_BY}", strings.Join(grpby, ","), 1)
+
+	resultInterface := make([]orm.Params, 0)
+	_, err = o.Raw(sql).Values(&resultInterface)
+
+	if err != nil{
+		return
+	}
+
+	if len(resultInterface) <= 0 {
+		return nil, errors.New("database return nil statistic results")
+	}
+
+	result = make(map[int64]map[string]float64)
+
+	for i, r := range resultInterface{
+		// result[i] = make(map[string]float64)
+		goodId, ok := r["id"]
+		if !ok {
+			fmt.Println("models.StatEvent SQL result row[" + strconv.Itoa(i) + "] not has key 'id', ignored.")
+			continue
+		}
+		goodIdInt, ok := goodId.(int64)
+		if !ok {
+			fmt.Println("models.StatEvent SQL result row[" + strconv.Itoa(i) + "] key 'id' cannot parse to int: '" + goodId.(string) + "', ignored.")
+			continue
+		}
+		for key, value := range r{
+			result[goodIdInt][key], err = strconv.ParseFloat(value.(string), 64)
+			if err != nil{
+				result[goodIdInt][key] = 0
+			}
+		}
+	}
+	return
 }

@@ -93,7 +93,18 @@ func (c *MainController) StatSell(){
 		c.AjaxSetResult(400, err.Error())
 		return
 	}
+	year, month, day := time.Now().Date()
+	endTime := time.Now()
+	todayBeginning := time.Date(year, month, day, 0, 0, 0, 0, time.Local)
+	//thisMonthBeginning := time.Date(year, month, 1, 0, 0, 0, 0, time.Local)
 
+	resultToday, err := models.StatSellGoodsByGoodId(&todayBeginning, &endTime, ids, models.STAT_COUNT_ITEMS | models.STAT_SUM_QUANTITY | models.STAT_SUM_MONEY | models.STAT_SUM_PROFITS)
+	if err != nil {
+		c.AjaxSetResult(500, err.Error())
+		return
+	}
+
+	fmt.Println(resultToday)
 
 	c.AjaxSetResult(200, idJson)
 }
