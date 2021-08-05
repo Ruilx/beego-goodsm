@@ -530,8 +530,8 @@ func StatEvent(startTime *time.Time, endTime *time.Time, name string, event stri
 	}
 	whe = append(whe, "status = 1")
 
-	sel = append(sel, "id as id")
-	grpby = append(grpby, "id")
+	sel = append(sel, "good_id as id")
+	grpby = append(grpby, "good_id")
 	if stat & STAT_SUM_MONEY > 0 {
 		sel = append(sel, "sum(money) as " + STAT_SUM_MONEY_KEY)
 	}
@@ -560,11 +560,12 @@ func StatEvent(startTime *time.Time, endTime *time.Time, name string, event stri
 		return
 	}
 
-	if len(resultInterface) <= 0 {
-		return nil, errors.New("database return nil statistic results")
-	}
-
 	result = make(map[int64]map[string]float64)
+
+	if len(resultInterface) <= 0 {
+		//return nil, errors.New("database return nil statistic results")
+		return
+	}
 
 	for i, r := range resultInterface{
 		// result[i] = make(map[string]float64)
@@ -573,9 +574,14 @@ func StatEvent(startTime *time.Time, endTime *time.Time, name string, event stri
 			fmt.Println("models.StatEvent SQL result row[" + strconv.Itoa(i) + "] not has key 'id', ignored.")
 			continue
 		}
-		goodIdInt, ok := goodId.(int64)
+		goodIdString, ok := goodId.(string)
 		if !ok {
 			fmt.Println("models.StatEvent SQL result row[" + strconv.Itoa(i) + "] key 'id' cannot parse to int: '" + goodId.(string) + "', ignored.")
+			continue
+		}
+		goodIdInt, transErr := strconv.ParseInt(goodIdString, 10, 64)
+		if transErr != nil {
+			fmt.Println("models.StatEvent SQL result row[" + strconv.Itoa(i) + "] key 'id' cannot parse to int: '" + goodIdString + "', ignored.")
 			continue
 		}
 		for key, value := range r{
@@ -634,12 +640,12 @@ func StatEventByGoodIds(startTime *time.Time, endTime *time.Time, ids []int64, e
 			idStr = append(idStr, strconv.FormatInt(id, 10))
 		}
 		fmt.Println(idStr)
-		whe = append(whe, "id in (" + strings.Join(idStr, ",") + ")")
+		whe = append(whe, "good_id in (" + strings.Join(idStr, ",") + ")")
 	}
 	whe = append(whe, "status = 1")
 
-	sel = append(sel, "id as id")
-	grpby = append(grpby, "id")
+	sel = append(sel, "good_id as id")
+	grpby = append(grpby, "good_id")
 	if stat & STAT_SUM_MONEY > 0 {
 		sel = append(sel, "sum(money) as " + STAT_SUM_MONEY_KEY)
 	}
@@ -668,11 +674,12 @@ func StatEventByGoodIds(startTime *time.Time, endTime *time.Time, ids []int64, e
 		return
 	}
 
-	if len(resultInterface) <= 0 {
-		return nil, errors.New("database return nil statistic results")
-	}
-
 	result = make(map[int64]map[string]float64)
+
+	if len(resultInterface) <= 0 {
+		//return nil, errors.New("database return nil statistic results")
+		return
+	}
 
 	for i, r := range resultInterface{
 		// result[i] = make(map[string]float64)
@@ -681,11 +688,17 @@ func StatEventByGoodIds(startTime *time.Time, endTime *time.Time, ids []int64, e
 			fmt.Println("models.StatEvent SQL result row[" + strconv.Itoa(i) + "] not has key 'id', ignored.")
 			continue
 		}
-		goodIdInt, ok := goodId.(int64)
+		goodIdString, ok := goodId.(string)
 		if !ok {
-			fmt.Println("models.StatEvent SQL result row[" + strconv.Itoa(i) + "] key 'id' cannot parse to int: '" + goodId.(string) + "', ignored.")
+			fmt.Println("models.StatEvent SQL result row[" + strconv.Itoa(i) + "] key 'id' cannot parse to string: '" + goodId.(string) + "', ignored.")
 			continue
 		}
+		goodIdInt, transErr := strconv.ParseInt(goodIdString, 10, 64)
+		if transErr != nil {
+			fmt.Println("models.StatEvent SQL result row[" + strconv.Itoa(i) + "] key 'id' cannot parse to int: '" + goodIdString + "', ignored.")
+			continue
+		}
+
 		for key, value := range r{
 			result[goodIdInt][key], err = strconv.ParseFloat(value.(string), 64)
 			if err != nil{

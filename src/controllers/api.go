@@ -96,15 +96,78 @@ func (c *MainController) StatSell(){
 	year, month, day := time.Now().Date()
 	endTime := time.Now()
 	todayBeginning := time.Date(year, month, day, 0, 0, 0, 0, time.Local)
-	//thisMonthBeginning := time.Date(year, month, 1, 0, 0, 0, 0, time.Local)
+	thisMonthBeginning := time.Date(year, month, 1, 0, 0, 0, 0, time.Local)
 
 	resultToday, err := models.StatSellGoodsByGoodId(&todayBeginning, &endTime, ids, models.STAT_COUNT_ITEMS | models.STAT_SUM_QUANTITY | models.STAT_SUM_MONEY | models.STAT_SUM_PROFITS)
 	if err != nil {
 		c.AjaxSetResult(500, err.Error())
 		return
 	}
+	resultThisMonth, err := models.StatSellGoodsByGoodId(&thisMonthBeginning, &endTime, ids, models.STAT_COUNT_ITEMS | models.STAT_SUM_QUANTITY | models.STAT_SUM_MONEY | models.STAT_SUM_PROFITS)
+	if err != nil {
+		c.AjaxSetResult(500, err.Error())
+		return
+	}
 
-	fmt.Println(resultToday)
+	result := make(map[int64]map[string]float64)
+	for _, id := range ids{
+		if goodsDStat, ok := resultToday[id]; ok{
+			if statCountItems, ok := goodsDStat[models.STAT_COUNT_ITEMS_KEY]; ok{
+				result[id][models.STAT_COUNT_ITEMS_KEY + "_day"] = statCountItems
+			}else{
+				result[id][models.STAT_COUNT_ITEMS_KEY + "_day"] = 0
+			}
+			if statSumQuantity, ok := goodsDStat[models.STAT_SUM_QUANTITY_KEY]; ok{
+				result[id][models.STAT_SUM_QUANTITY_KEY + "_day"] = statSumQuantity
+			}else{
+				result[id][models.STAT_SUM_QUANTITY_KEY + "_day"] = 0
+			}
+			if statSumMoney, ok := goodsDStat[models.STAT_SUM_MONEY_KEY]; ok{
+				result[id][models.STAT_SUM_MONEY_KEY + "_day"] = statSumMoney
+			}else{
+				result[id][models.STAT_SUM_MONEY_KEY + "_day"] = 0
+			}
+			if statSumProfits, ok := goodsDStat[models.STAT_SUM_PROFITS_KEY]; ok{
+				result[id][models.STAT_SUM_PROFITS_KEY + "_day"] = statSumProfits
+			}else{
+				result[id][models.STAT_SUM_PROFITS_KEY + "_day"] = 0
+			}
+		}else{
+			result[id][models.STAT_COUNT_ITEMS_KEY + "_day"] = 0
+			result[id][models.STAT_SUM_QUANTITY_KEY + "_day"] = 0
+			result[id][models.STAT_SUM_MONEY_KEY + "_day"] = 0
+			result[id][models.STAT_SUM_PROFITS_KEY + "_day"] = 0
+		}
+		if goodsMStat, ok := resultThisMonth[id]; ok{
+			if statCountItems, ok := goodsMStat[models.STAT_COUNT_ITEMS_KEY]; ok{
+				result[id][models.STAT_COUNT_ITEMS_KEY + "_month"] = statCountItems
+			}else{
+				result[id][models.STAT_COUNT_ITEMS_KEY + "_month"] = 0
+			}
+			if statSumQuantity, ok := goodsMStat[models.STAT_SUM_QUANTITY_KEY]; ok{
+				result[id][models.STAT_SUM_QUANTITY_KEY + "_month"] = statSumQuantity
+			}else{
+				result[id][models.STAT_SUM_QUANTITY_KEY + "_month"] = 0
+			}
+			if statSumMoney, ok := goodsMStat[models.STAT_SUM_MONEY_KEY]; ok{
+				result[id][models.STAT_SUM_MONEY_KEY + "_month"] = statSumMoney
+			}else{
+				result[id][models.STAT_SUM_MONEY_KEY + "_month"] = 0
+			}
+			if statSumProfits, ok := goodsMStat[models.STAT_SUM_PROFITS_KEY]; ok{
+				result[id][models.STAT_SUM_PROFITS_KEY + "_month"] = statSumProfits
+			}else{
+				result[id][models.STAT_SUM_PROFITS_KEY + "_month"] = 0
+			}
+		}else{
+			result[id][models.STAT_COUNT_ITEMS_KEY + "_month"] = 0
+			result[id][models.STAT_SUM_QUANTITY_KEY + "_month"] = 0
+			result[id][models.STAT_SUM_MONEY_KEY + "_month"] = 0
+			result[id][models.STAT_SUM_PROFITS_KEY + "_month"] = 0
+		}
+	}
+
+	fmt.Println(result)
 
 	c.AjaxSetResult(200, idJson)
 }
