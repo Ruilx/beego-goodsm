@@ -585,6 +585,9 @@ func StatEvent(startTime *time.Time, endTime *time.Time, name string, event stri
 			continue
 		}
 		for key, value := range r{
+			if _, ok := result[goodIdInt]; !ok {
+				result[goodIdInt] = make(map[string]float64)
+			}
 			result[goodIdInt][key], err = strconv.ParseFloat(value.(string), 64)
 			if err != nil{
 				result[goodIdInt][key] = 0
@@ -700,9 +703,8 @@ func StatEventByGoodIds(startTime *time.Time, endTime *time.Time, ids []int64, e
 		}
 
 		for key, value := range r{
-			_, ok := result[goodIdInt]
-			if !ok {
-				result[goodIdInt] = make(map[string]string)
+			if _, ok := result[goodIdInt]; !ok {
+				result[goodIdInt] = make(map[string]float64)
 			}
 			result[goodIdInt][key], err = strconv.ParseFloat(value.(string), 64)
 			if err != nil{
