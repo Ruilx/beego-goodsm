@@ -32,9 +32,13 @@ func checkIpQrcode(ipstr string) {
 		}
 		if err = beego.AppConfig.Set(CONF_QRCODE_PNG_B64, qrImgBase64); err != nil {
 			fmt.Println("Cannot save qrcode base64 in config file. err: ", err.Error())
+		}else{
+			fmt.Println("Saved config: " + CONF_QRCODE_PNG_B64)
 		}
 		if err = beego.AppConfig.Set(CONF_QRCODE_IP, ipstr); err != nil {
 			fmt.Println("Cannot save qrcode ip in config file. err: ", err.Error())
+		}else{
+			fmt.Println("Saved config: " + CONF_QRCODE_IP)
 		}
 	} else {
 		fmt.Println("QRCode '" + ipstr + "' has already in config.")

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/beego/beego/v2/client/orm"
@@ -93,10 +94,9 @@ func (c *MainController) StatSell(){
 		c.AjaxSetResult(400, err.Error())
 		return
 	}
-	year, month, day := time.Now().Date()
 	endTime := time.Now()
-	todayBeginning := time.Date(year, month, day, 0, 0, 0, 0, time.Local)
-	thisMonthBeginning := time.Date(year, month, 1, 0, 0, 0, 0, time.Local)
+	todayBeginning, _ := common.GetTimeBeginning("day", &endTime)
+	thisMonthBeginning, _ := common.GetTimeBeginning("month", &endTime)
 
 	resultToday, err := models.StatSellGoodsByGoodId(&todayBeginning, &endTime, ids, models.STAT_COUNT_ITEMS | models.STAT_SUM_QUANTITY | models.STAT_SUM_MONEY | models.STAT_SUM_PROFITS)
 	if err != nil {
@@ -109,81 +109,103 @@ func (c *MainController) StatSell(){
 		return
 	}
 
-	result := make(map[int64]map[string]float64)
+	result := &c.res.Data
 	for _, id := range ids{
+		idStr := strconv.FormatInt(id, 10)
+		resultPart := make(map[string]float64)
 		if goodsDStat, ok := resultToday[id]; ok{
 			if statCountItems, ok := goodsDStat[models.STAT_COUNT_ITEMS_KEY]; ok{
-				result[id][models.STAT_COUNT_ITEMS_KEY + "_day"] = statCountItems
+				resultPart[models.STAT_COUNT_ITEMS_KEY + "_day"] = statCountItems
 			}else{
-				result[id][models.STAT_COUNT_ITEMS_KEY + "_day"] = 0
+				resultPart[models.STAT_COUNT_ITEMS_KEY + "_day"] = 0
 			}
 			if statSumQuantity, ok := goodsDStat[models.STAT_SUM_QUANTITY_KEY]; ok{
-				result[id][models.STAT_SUM_QUANTITY_KEY + "_day"] = statSumQuantity
+				resultPart[models.STAT_SUM_QUANTITY_KEY + "_day"] = statSumQuantity
 			}else{
-				result[id][models.STAT_SUM_QUANTITY_KEY + "_day"] = 0
+				resultPart[models.STAT_SUM_QUANTITY_KEY + "_day"] = 0
 			}
 			if statSumMoney, ok := goodsDStat[models.STAT_SUM_MONEY_KEY]; ok{
-				result[id][models.STAT_SUM_MONEY_KEY + "_day"] = statSumMoney
+				resultPart[models.STAT_SUM_MONEY_KEY + "_day"] = statSumMoney
 			}else{
-				result[id][models.STAT_SUM_MONEY_KEY + "_day"] = 0
+				resultPart[models.STAT_SUM_MONEY_KEY + "_day"] = 0
 			}
 			if statSumProfits, ok := goodsDStat[models.STAT_SUM_PROFITS_KEY]; ok{
-				result[id][models.STAT_SUM_PROFITS_KEY + "_day"] = statSumProfits
+				resultPart[models.STAT_SUM_PROFITS_KEY + "_day"] = statSumProfits
 			}else{
-				result[id][models.STAT_SUM_PROFITS_KEY + "_day"] = 0
+				resultPart[models.STAT_SUM_PROFITS_KEY + "_day"] = 0
 			}
 		}else{
-			result[id][models.STAT_COUNT_ITEMS_KEY + "_day"] = 0
-			result[id][models.STAT_SUM_QUANTITY_KEY + "_day"] = 0
-			result[id][models.STAT_SUM_MONEY_KEY + "_day"] = 0
-			result[id][models.STAT_SUM_PROFITS_KEY + "_day"] = 0
+			resultPart[models.STAT_COUNT_ITEMS_KEY + "_day"] = 0
+			resultPart[models.STAT_SUM_QUANTITY_KEY + "_day"] = 0
+			resultPart[models.STAT_SUM_MONEY_KEY + "_day"] = 0
+			resultPart[models.STAT_SUM_PROFITS_KEY + "_day"] = 0
 		}
 		if goodsMStat, ok := resultThisMonth[id]; ok{
 			if statCountItems, ok := goodsMStat[models.STAT_COUNT_ITEMS_KEY]; ok{
-				result[id][models.STAT_COUNT_ITEMS_KEY + "_month"] = statCountItems
+				resultPart[models.STAT_COUNT_ITEMS_KEY + "_month"] = statCountItems
 			}else{
-				result[id][models.STAT_COUNT_ITEMS_KEY + "_month"] = 0
+				resultPart[models.STAT_COUNT_ITEMS_KEY + "_month"] = 0
 			}
 			if statSumQuantity, ok := goodsMStat[models.STAT_SUM_QUANTITY_KEY]; ok{
-				result[id][models.STAT_SUM_QUANTITY_KEY + "_month"] = statSumQuantity
+				resultPart[models.STAT_SUM_QUANTITY_KEY + "_month"] = statSumQuantity
 			}else{
-				result[id][models.STAT_SUM_QUANTITY_KEY + "_month"] = 0
+				resultPart[models.STAT_SUM_QUANTITY_KEY + "_month"] = 0
 			}
 			if statSumMoney, ok := goodsMStat[models.STAT_SUM_MONEY_KEY]; ok{
-				result[id][models.STAT_SUM_MONEY_KEY + "_month"] = statSumMoney
+				resultPart[models.STAT_SUM_MONEY_KEY + "_month"] = statSumMoney
 			}else{
-				result[id][models.STAT_SUM_MONEY_KEY + "_month"] = 0
+				resultPart[models.STAT_SUM_MONEY_KEY + "_month"] = 0
 			}
 			if statSumProfits, ok := goodsMStat[models.STAT_SUM_PROFITS_KEY]; ok{
-				result[id][models.STAT_SUM_PROFITS_KEY + "_month"] = statSumProfits
+				resultPart[models.STAT_SUM_PROFITS_KEY + "_month"] = statSumProfits
 			}else{
-				result[id][models.STAT_SUM_PROFITS_KEY + "_month"] = 0
+				resultPart[models.STAT_SUM_PROFITS_KEY + "_month"] = 0
 			}
 		}else{
-			result[id][models.STAT_COUNT_ITEMS_KEY + "_month"] = 0
-			result[id][models.STAT_SUM_QUANTITY_KEY + "_month"] = 0
-			result[id][models.STAT_SUM_MONEY_KEY + "_month"] = 0
-			result[id][models.STAT_SUM_PROFITS_KEY + "_month"] = 0
+			resultPart[models.STAT_COUNT_ITEMS_KEY + "_month"] = 0
+			resultPart[models.STAT_SUM_QUANTITY_KEY + "_month"] = 0
+			resultPart[models.STAT_SUM_MONEY_KEY + "_month"] = 0
+			resultPart[models.STAT_SUM_PROFITS_KEY + "_month"] = 0
 		}
+		(*result)[idStr] = resultPart
 	}
 
-	fmt.Println(result)
+	/**
+	Data: [ID]:
+	"count_items_day": 当日售出件数
+	"count_items_month": 当月售出件数,
+	"sum_money_day": 当日售出金额
+	"sum_money_month": 当月售出金额,
+	"sum_profits_day": 当日利息金额,
+	"sum_profits_month": 当月利息金额,
+	"sum_quantity_day": 当日售出数量(一单可能有多件),
+	"sum_quantity_month": 当月售出数量(一单可能有多件)
+	 */
 
-	c.AjaxSetResult(200, idJson)
+	c.AjaxSetResult(200, "success")
 }
 
 func (c *MainController) GetGoods() {
 	name := c.Ctx.Input.Query("name")
+	name = strings.Replace(name, "'", "\\'", -1)
+	name = strings.TrimSpace(name)
 
-	fmt.Println("Search: " + name)
+	exactStr := c.Ctx.Input.Query("exact")
+	exact := false
+	if exactStr == "1" {
+		exact = true
+		fmt.Println("Search Exactly: " + name)
+	}else {
+		exact = false
+		fmt.Println("Search Fuzzy:" + name)
+	}
 
 	var goods []models.Good
 	var err error
-	if goods, err = models.GetGoods(name, models.ORDERBY_ASC); err != nil {
+	if goods, err = models.GetGoods(name, models.ORDERBY_ASC, exact); err != nil {
 		c.AjaxSetResult(500, err.Error())
 		return
 	}
-	fmt.Println(goods)
 
 	if name != "" {
 		if len(goods) > 0 {
@@ -218,13 +240,11 @@ func (c *MainController) GetGoods() {
 			}
 			goodsResult = append(goodsResult, good)
 		}
-		result := make(map[string]interface{})
-		result["goods"] = goodsResult
-		c.res.Data = result
+
+		c.res.Data["goods"] = goodsResult
 		c.AjaxSetResult(200, "success")
 		return
 	}
-
 }
 
 func (c *MainController) AddGood() {
@@ -359,6 +379,18 @@ func (c *MainController) UpdGood() {
 	c.log.Info("PARAM: quantity = '" + quantity + "'")
 	c.log.Info("PARAM: hasImg = '" + hasImg + "'")
 
+	dumpImageFileNil := "false"
+	if imageFile != nil {
+		dumpImageFileNil = "true"
+	}
+	c.log.Info("PARAM: imageFile = '" + dumpImageFileNil + "'")
+
+	dumpImageFileHeaderNil := "false"
+	if imageHeader != nil{
+		dumpImageFileHeaderNil = "true"
+	}
+	c.log.Info("PARAM: imageFileHeader = '" + dumpImageFileHeaderNil + "'")
+
 	var idi int
 	var err error
 	if id == "" {
@@ -382,11 +414,20 @@ func (c *MainController) UpdGood() {
 		c.AjaxSetResult(400, "price is invalid")
 		return
 	}
+	if pricef < 0 {
+		c.log.Error(fmt.Sprintf("[PARAM] received price is not valid: '%f'", pricef))
+		c.AjaxSetResult(400, "price is invalid")
+	}
+
 	quantityi, err := strconv.ParseInt(quantity, 10, 64)
 	if quantity == "" || err != nil {
 		c.log.Error("[PARAM] received quantity is not an integer")
 		c.AjaxSetResult(400, "quantity is invalid")
 		return
+	}
+	if quantityi < 0 {
+		c.log.Error(fmt.Sprintf("[PARAM] received quantity is not valid: '%d'", quantityi))
+		c.AjaxSetResult(400, "quantity is invalid")
 	}
 
 	if imageFile != nil {
@@ -423,12 +464,15 @@ func (c *MainController) UpdGood() {
 		Price:    pricef,
 		Quantity: quantityi,
 	}
+	updCols := make([]string, 0, 5)
+	updCols = append(updCols, "name", "desc", "price", "quantity")
 
 	if imageSaveFilename != "" {
 		good.Image = imageSaveFilename
+		updCols = append(updCols, "image")
 	}
 
-	insertId, err := models.UpdateGoodsById(&good)
+	insertId, err := models.UpdateGoodsById(&good, updCols...)
 	if err != nil {
 		c.log.Error("[AddGoods] Database error: " + err.Error())
 		c.AjaxSetResult(500, "database error: "+err.Error())
@@ -454,11 +498,11 @@ func (c *MainController) SellGood() {
 	var unitPricef float64
 
 	c.log.Info("Enrty SellGood operation.")
-	c.log.Info("[PARAM] id = ", id)
-	c.log.Info("[PARAM] quantity = ", quantity)
-	c.log.Info("[PARAM] price = ", price)
-	c.log.Info("[PARAM] remark = ", remark)
-	c.log.Info("[PARAM] unitPrice = ", unitPrice)
+	c.log.Info("[PARAM] id = %d", id)
+	c.log.Info("[PARAM] quantity = %d", quantity)
+	c.log.Info("[PARAM] price = %f", price)
+	c.log.Info("[PARAM] remark = %s", remark)
+	c.log.Info("[PARAM] unitPrice = %f", unitPrice)
 
 	if idi, err = strconv.Atoi(id); err != nil {
 		c.log.Error("cannot parse id to int: ", err.Error())
@@ -530,7 +574,7 @@ func (c *MainController) SellGood() {
 	tryTimes := 5
 	i := 0
 	for i = 0; i < tryTimes; i++ {
-		if resultHisId, err = models.AddSellsHistory(thisGood, quantityi, unitPricef, float64(quantityi)*unitPricef, remark, balance); err == nil {
+		if resultHisId, err = models.AddSellsHistory(thisGood, quantityi, pricef / float64(quantityi), pricef, remark, balance); err == nil {
 			break
 		}
 	}

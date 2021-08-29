@@ -3,6 +3,7 @@ package common
 import (
 	"crypto/md5"
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"image"
@@ -16,6 +17,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-basic/uuid"
 	"github.com/nfnt/resize"
@@ -26,6 +28,7 @@ import (
 )
 
 const WiredTime = "2006-01-02 15:04:05"
+const WiredDate = "2006-01-02"
 
 const (
 	IMAGE_UPLOAD_PATH        = "/static/upload/"
@@ -174,7 +177,7 @@ func RerenderImage(fileHandler multipart.File, fileHandlerHeader *multipart.File
 	buf := make([]byte, 1024)
 	n := 1
 	for n > 0 {
-		if n, err = outImg.Read(buf); err != nil {
+		if n, err = outImg.Read(buf); err != nil && err != io.EOF {
 			return filename, errors.New("outImg file read err. err: " + err.Error())
 		}
 		if n <= 0 {
@@ -184,7 +187,7 @@ func RerenderImage(fileHandler multipart.File, fileHandlerHeader *multipart.File
 			return filename, errors.New("outImg md5 checksum append error. err: " + err.Error())
 		}
 	}
-	md5Str := string(md5Obj.Sum(nil))
+	md5Str := hex.EncodeToString(md5Obj.Sum(nil))
 
 	newOriginFilename := wdDir + IMAGE_ORIGIN_PATH_PREFIX + md5Str + SAVING_IMAGE_SUFFIX
 	_ = outImg.Close()
@@ -294,4 +297,24 @@ func IsMobileUsingUserAgent(ua string) (isMobile bool) {
 		}
 	}
 	return
+}
+
+func GetTimeBeginning(key string, t1 *time.Time)(t time.Time, err error){
+	switch key{
+	case "second":
+		t = time.Date(t1.Year(), t1.Month(), t1.Day(), t1.Hour(), t1.Minute(), t1.Second(), 0, time.Local)
+	case "minute":
+		t = time.Date(t1.Year(), t1.Month(), t1.Day(), t1.Hour(), t1.Minute(), 0, 0, time.Local)
+	case "hour":
+		t = time.Date(t1.Year(), t1.Month(), t1.Day(), t1.Hour(), 0, 0, 0, time.Local)
+	case "day":
+		t = time.Date(t1.Year(), t1.Month(), t1.Day(), 0, 0, 0, 0, time.Local)
+	case "month":
+		t = time.Date(t1.Year(), t1.Month(), 1, 0, 0, 0, 0, time.Local)
+	case "year":
+		t = time.Date(t1.Year(), 1, 1, 0, 0, 0, 0, time.Local)
+	default:
+		return *t1, errors.New("key is not valid. choices:(second, minute, hour, day, month, year)")
+	}
+	return t, nil
 }

@@ -106,6 +106,11 @@ func init() {
 	if err = orm.RegisterDataBase(DBNAME, "sqlite3", dbPath); err != nil {
 		panic("Cannot register database " + DBNAME + " for sqlite3: " + err.Error())
 	}
+
+	if err = orm.SetDataBaseTZ(DBNAME, time.Local); err != nil {
+		panic("Cannot set database " + DBNAME + " timezone to local for sqlite3: " + err.Error())
+	}
+
 	// 注册表
 	orm.RegisterModel(&Good{})
 	orm.RegisterModel(&History{})
@@ -152,13 +157,18 @@ func GetGoodsByName(name string) (res *Good, err error) {
 // 通过名字筛选货品
 // 输入货品名称(关键字)
 // 返回货物结构体列表和err
-func GetGoods(name string, order int) (ml []Good, err error) {
+func GetGoods(name string, order int, exact bool) (ml []Good, err error) {
 	ormHandle := orm.NewOrmUsingDB(DBNAME)
 	queryCond := ormHandle.QueryTable(&Good{})
 
 	if name != "" {
-		queryCond = queryCond.Filter("name__icontains", name)
+		if exact {
+			queryCond = queryCond.Filter("name", name)
+		} else {
+			queryCond = queryCond.Filter("name__icontains", name)
+		}
 	}
+
 	if order == ORDERBY_UNKNOWN || order == ORDERBY_ASC {
 		queryCond = queryCond.OrderBy("create_time")
 	} else {
@@ -169,6 +179,57 @@ func GetGoods(name string, order int) (ml []Good, err error) {
 		return nil, err
 	}
 	return ml, nil
+}
+
+func GetGoodsCount(name string)(count int64, quantity int64, err error){
+	ormHandle := orm.NewOrmUsingDB(DBNAME)
+	sql := "Select {SELECT} from good where {WHERE}"
+	sel := make([]string, 0, 2)
+	whe := make([]string, 0, 2)
+
+	sel = append(sel, "count(1) as count")
+	sel = append(sel,  "sum(quantity) as quantity")
+	if name = strings.Replace(name, "'", "\\'", -1); name != ""{
+		whe = append(whe, "name like '%" + name + "%'")
+	}
+	whe = append(whe, "deleted = 0")
+
+	sql = strings.Replace(sql, "{SELECT}", strings.Join(sel, ","), 1)
+	sql = strings.Replace(sql, "{WHERE}", strings.Join(whe, " and "), 1)
+
+	resultInterface := make([]orm.Params, 0)
+	_, err = ormHandle.Raw(sql).Values(&resultInterface)
+
+	if err != nil{
+		return
+	}
+
+	if len(resultInterface) <= 0 {
+		fmt.Println("GetGoodsCount: result is nil")
+		return 0, 0,nil
+	}
+
+	countRow := &resultInterface[0]
+	ok := false
+	var countStr string
+	if countStr, ok = (*countRow)["count"].(string); !ok{
+		fmt.Println("GetGoodsCount: result has no item named 'count'")
+		return 0, 0,nil
+	}
+	if count, err = strconv.ParseInt(countStr, 10, 64); err != nil{
+		fmt.Println("GetGoodsCount: result 'count' cannot parse to int64")
+		return 0, 0, nil
+	}
+	var quantityStr string
+	if quantityStr, ok = (*countRow)["quantity"].(string); !ok{
+		fmt.Println("GetGoodsCount: result has no item named 'quantity'")
+		return count, 0, nil
+	}
+	if quantity, err = strconv.ParseInt(quantityStr, 10, 64); err != nil{
+		fmt.Println("GetGoodsCount: result 'quantity' cannot parse to int64")
+		return count, 0, nil
+	}
+	return count, quantity,nil
 }
 
 // 获得所有货物
@@ -510,6 +571,80 @@ func GoodHistory(startTime *time.Time, endTime *time.Time, id int64, order int) 
 	return result, err
 }
 
+func StatEventSummary(startTime *time.Time, endTime *time.Time, event string, stat int32)(result map[string]float64, err error){
+	o := orm.NewOrmUsingDB(DBNAME)
+
+	sql := "Select {SELECT} from history where {WHERE}"
+	sel := make([]string, 0, 4)
+	whe := make([]string, 0, 4)
+
+	whe = append(whe, "event = '" + strings.Replace(event, "'", "", -1) + "'")
+	whe = append(whe, "create_time >= '" + startTime.Format(common.WiredTime) + "'")
+	whe = append(whe, "create_time <= '" + endTime.Format(common.WiredTime) + "'")
+	whe = append(whe, "status = 1")
+
+	if stat & STAT_SUM_MONEY > 0 {
+		sel = append(sel, "sum(money) as " + STAT_SUM_MONEY_KEY)
+	}
+	if stat & STAT_SUM_QUANTITY > 0 {
+		sel = append(sel, "sum(quantity) as " + STAT_SUM_QUANTITY_KEY)
+	}
+	if stat & STAT_SUM_PROFITS > 0 {
+		sel = append(sel, "sum(money - good_price) as " + STAT_SUM_PROFITS_KEY)
+	}
+	if stat & STAT_COUNT_ITEMS > 0 {
+		sel = append(sel, "count(1) as " + STAT_COUNT_ITEMS_KEY)
+	}
+
+	if len(sel) <= 0{
+		return nil, errors.New("no stat items set")
+	}
+
+	sql = strings.Replace(sql, "{SELECT}", strings.Join(sel, ","), 1)
+	sql = strings.Replace(sql, "{WHERE}", strings.Join(whe, " and "), 1)
+
+	resultInterface := make([]orm.Params, 0)
+	_, err = o.Raw(sql).Values(&resultInterface)
+
+	if err != nil{
+		return
+	}
+
+	result = make(map[string]float64)
+
+	if len(resultInterface) <= 0{
+		return
+	}
+
+	for key, value := range resultInterface[0]{
+		if value == nil {
+			result[key] = 0
+		}else {
+			result[key], err = strconv.ParseFloat(value.(string), 64)
+			if err != nil {
+				result[key] = 0
+			}
+		}
+	}
+	return
+}
+
+func StatSoldSummary(startTime *time.Time, endTime *time.Time, stat int32)(result map[string]float64, err error){
+	return StatEventSummary(startTime, endTime, EVENT_SELL, stat)
+}
+
+func StatImportedSummary(startTime *time.Time, endTime *time.Time, stat int32)(result map[string]float64, err error){
+	return StatEventSummary(startTime, endTime, EVENT_IMPORT, stat)
+}
+
+func StatExportedSummary(startTime *time.Time, endTime *time.Time, stat int32)(result map[string]float64, err error){
+	return StatEventSummary(startTime, endTime, EVENT_EXPORT, stat)
+}
+
+func StatDeletedSummary(startTime *time.Time, endTime *time.Time, stat int32)(result map[string]float64, err error){
+	return StatEventSummary(startTime, endTime, EVENT_DELETE, stat)
+}
+
 // 售货历史通过Event获取
 // 使用下面4个函数获得相应的售货历史事件的实际值
 // 输入: 开始时间, 结束时间, 物品名称(模糊搜索), event, 想要获取哪些stat
@@ -642,7 +777,6 @@ func StatEventByGoodIds(startTime *time.Time, endTime *time.Time, ids []int64, e
 		for _, id := range ids{
 			idStr = append(idStr, strconv.FormatInt(id, 10))
 		}
-		fmt.Println(idStr)
 		whe = append(whe, "good_id in (" + strings.Join(idStr, ",") + ")")
 	}
 	whe = append(whe, "status = 1")

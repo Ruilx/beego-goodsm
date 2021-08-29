@@ -42,13 +42,13 @@
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
             <li class="nav-item">
-                <a class="nav-link" href="#">主页</a>
+                <a class="nav-link" href="/">主页</a>
             </li>
             <li class="nav-item active">
-                <a class="nav-link" href="#">添加货物 <span class="sr-only">(激活)</span></a>
+                <a class="nav-link" href="/add">添加货物 <span class="sr-only">(激活)</span></a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#">售货历史</a>
+                <a class="nav-link" href="/his">售货历史</a>
             </li>
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -65,10 +65,6 @@
                 <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">被禁用的项目</a>
             </li>
         </ul>
-        <form class="form-inline my-2 my-lg-0">
-            <input class="form-control mr-sm-2" type="search" placeholder="查询货物" aria-label="查询">
-            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">搜索名称</button>
-        </form>
     </div>
 </nav>
 
@@ -80,7 +76,7 @@
                     {{if .id}}编辑货品{{else}}添加货品{{end}}
                 </div>
                 <div class="card-body">
-                    <h3 class="card-title" id="infotip">
+                    <h3 class="card-title font-weight-bold">
                         {{if .id}}
                         请更改货品的信息, 完成后点击"更新信息"来保存. 请注意, 此修改并不能改变已售出的历史记录中的信息.
                         {{else}}
@@ -158,6 +154,11 @@
                             <div class="form-group row">
                                 <div class="col-sm-12 col-xs-12">
                                     <button type="submit" class="btn btn-primary">{{if .id}}更新信息{{else}}增加货品{{end}}</button>
+                                </div>
+                                <div class="col-sm-12 col-xs-12">
+                                    <div class="alert alert-danger mt-3 d-none" role="alert">
+                                        <span class="font-weight-bolder mb-n1" id="infotip"></span>
+                                    </div>
                                 </div>
                             </div>
                         </form>
@@ -298,11 +299,14 @@
 <script type="text/javascript">
     "use strict";
     let updateInfoTip = function(info, cls){
-        let infotipDom = $("#infotip");
+        let infotipDom = $("#infotip"),
+            infotipalertDom = infotipDom.parents(".alert");
         if (!infotipDom.hasClass(cls)){
             infotipDom.addClass(cls);
         }
         infotipDom.html(info);
+        infotipalertDom.removeClass("d-none")
+
     };
     $("#add-good").submit(function(e){
         e.preventDefault();
@@ -327,11 +331,17 @@
         }else if(parseFloat(price) != price){
             updateInfoTip("请输入正确的货品价格", "text-danger")
             return;
+        }else if(parseFloat(price) < 0){
+            updateInfoTip("请输入正确的货品价格", "text-danger")
+            return;
         }
         if(quantity === ""){
             updateInfoTip("请输入库存", "text-danger");
             return;
         }else if(parseInt(quantity) != quantity){
+            updateInfoTip("请输入正确的库存量", "text-danger");
+            return;
+        }else if(parseInt(quantity) < 0){
             updateInfoTip("请输入正确的库存量", "text-danger");
             return;
         }
@@ -353,7 +363,7 @@
             set_loading_mask(loadingMask, false);
             let id = $("#goods_id"),
                 modal_for_success = $("#modal_for_success"),
-                modal_for_failed = $("#model_for_failed"),
+                modal_for_failed = $("#modal_for_failed"),
                 code = ret_data.code,
                 msg = ret_data['msg'];
             if (code === 200) {
@@ -396,7 +406,7 @@
         }
         set_loading_mask(loadingMask, true);
 
-        ajax_gen("/api?op=get", {name: name}, function(res_data, textStatus, jqXHR){
+        ajax_gen("/api?op=get", {name: name, exact: 1}, function(res_data, textStatus, jqXHR){
             if (typeof(res_data.data) != "object"){
                 set_loading_mask(loadingMask, false);
                 console.warn("parse data failed:" + res_data.data);
