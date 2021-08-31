@@ -498,11 +498,11 @@ func (c *MainController) SellGood() {
 	var unitPricef float64
 
 	c.log.Info("Enrty SellGood operation.")
-	c.log.Info("[PARAM] id = %d", id)
-	c.log.Info("[PARAM] quantity = %d", quantity)
-	c.log.Info("[PARAM] price = %f", price)
+	c.log.Info("[PARAM] id = %s", id)
+	c.log.Info("[PARAM] quantity = %s", quantity)
+	c.log.Info("[PARAM] price = %s", price)
 	c.log.Info("[PARAM] remark = %s", remark)
-	c.log.Info("[PARAM] unitPrice = %f", unitPrice)
+	c.log.Info("[PARAM] unitPrice = %s", unitPrice)
 
 	if idi, err = strconv.Atoi(id); err != nil {
 		c.log.Error("cannot parse id to int: ", err.Error())
@@ -600,9 +600,9 @@ func (c *MainController) ImportGood() {
 	var quantityi int64
 
 	c.log.Info("Entry ImportGood operation.")
-	c.log.Info("[PARAM] id = ", id)
-	c.log.Info("[PARAM] quantity = ", quantity)
-	c.log.Info("[PARAM] remark = ", remark)
+	c.log.Info("[PARAM] id = %s", id)
+	c.log.Info("[PARAM] quantity = %s", quantity)
+	c.log.Info("[PARAM] remark = %s", remark)
 
 	if idi, err = strconv.ParseInt(id, 10, 32); err != nil {
 		c.log.Error("cannot parse id to int: ", err.Error())
@@ -680,9 +680,9 @@ func (c *MainController) ExportGood() {
 	var quantityi int64
 
 	c.log.Info("Entry ExportGood operation.")
-	c.log.Info("[PARAM] id = ", id)
-	c.log.Info("[PARAM] quantity = ", quantity)
-	c.log.Info("[PARAM] remark = ", remark)
+	c.log.Info("[PARAM] id = %s", id)
+	c.log.Info("[PARAM] quantity = %s", quantity)
+	c.log.Info("[PARAM] remark = %s", remark)
 
 	if idi, err = strconv.ParseInt(id, 10, 32); err != nil {
 		c.log.Error("cannot parse id to int: ", err.Error())
@@ -758,8 +758,8 @@ func (c *MainController) DeleteGood() {
 	var idi int64
 
 	c.log.Info("Entry DeleteGood operation.")
-	c.log.Info("[PARAM] id: ", idi)
-	c.log.Info("[PARAM] remark: ", remark)
+	c.log.Info("[PARAM] id: %s", id)
+	c.log.Info("[PARAM] remark: %s", remark)
 
 	if idi, err = strconv.ParseInt(id, 10, 32); err != nil {
 		c.log.Error("cannot parse id to int: ", err.Error())
@@ -826,8 +826,8 @@ func (c *MainController) RecoverGood() {
 	var idi int64
 
 	c.log.Info("Entry RecoverGood operation.")
-	c.log.Info("[PARAM] id: ", id)
-	c.log.Info("[PARAM] remark: ", remark)
+	c.log.Info("[PARAM] id: %s", id)
+	c.log.Info("[PARAM] remark: %s", remark)
 
 	if idi, err = strconv.ParseInt(id, 10, 32); err != nil {
 		c.log.Error("cannot parse id to int: ", err.Error())
