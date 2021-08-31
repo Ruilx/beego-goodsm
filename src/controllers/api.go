@@ -304,6 +304,11 @@ func (c *MainController) AddGood() {
 		if errFormat != nil {
 			sizeFormat = strconv.FormatInt(imageHeader.Size, 10)
 		}
+		if imageHeader.Size > (5 * 1024 * 1024) {
+			c.log.Error("[PARAM] received image size out of 5M: actual size: " + sizeFormat + ".")
+			c.AjaxSetResult(400, "image size too big")
+			return
+		}
 		c.log.Info("PARAM: image = ['" + imageHeader.Filename + "', '" + sizeFormat + "', '" + imageHeader.Header.Get(common.MINE_CONTENT_TYPE) + "'")
 		imageSaveFilename, err = common.RerenderImage(imageFile, imageHeader)
 		if err != nil {

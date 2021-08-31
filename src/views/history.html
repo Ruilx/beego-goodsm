@@ -33,7 +33,7 @@
             </li>
             {{template "navmenu.html" .}}
             <li class="nav-item">
-                <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">被禁用的项目</a>
+                <a class="nav-link disabled font-weight-bolder" href="#" tabindex="-1" aria-disabled="true">{{config "String" "store_name" "欢迎使用"}}</a>
             </li>
         </ul>
         <form class="form-inline my-2 my-lg-0" id="search-form">
@@ -53,12 +53,9 @@
                     </div>
                     <div class="form-inline">
                         <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">开始时间</span>
-                            </div>
                             <input type="text" class="form-control" id="startdate" placeholder="yyyy-MM-dd" readonly>
                             <div class="input-group-prepend">
-                                <span class="input-group-text">结束时间</span>
+                                <span class="input-group-text">至</span>
                             </div>
                             <input type="text" class="form-control" id="enddate" placeholder="yyyy-MM-dd" readonly>
                             <div class="input-group-append">
@@ -68,6 +65,14 @@
                     </div>
                 </div>
                 <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                    </table>
                 </div>
             </div>
         </div>
@@ -84,7 +89,8 @@
 <script type="text/javascript">
     "use strict";
     $(function(){
-        let tooltips = {
+        let dateFormat = "YYYY-MM-DD",
+            tooltips = {
                 today: '返回今天',
                 clear: '清除选中',
                 close: '关闭窗口',
@@ -111,8 +117,10 @@
                 togglePeriod: '切换周期',
                 selectTime: '选择时间'
             };
+        $("#startdate").val(moment().format(dateFormat));
+        $("#enddate").val(moment().format(dateFormat));
         $("#startdate").datetimepicker({
-            format: "YYYY-MM-DD",
+            format: dateFormat,
             ignoreReadonly: true,
             widgetPositioning: {
                 horizontal:"auto",
@@ -121,8 +129,24 @@
             locale: "zh_cn",
             collapse: true,
             tooltips: tooltips,
-
+            minDate: "2000-01-01",
+            maxDate: moment().format("YYYY-MM-DD"),
+            showTodayButton: true,
         });
+        $("#enddate").datetimepicker({
+            format: dateFormat,
+            ignoreReadonly: true,
+            widgetPositioning: {
+                horizontal:"auto",
+                vertical:"bottom"
+            },
+            locale: "zh_cn",
+            collapse: true,
+            tooltips: tooltips,
+            minDate: "2000-01-01",
+            maxDate: moment().format("YYYY-MM-DD"),
+            showTodayButton: true,
+        })
     })
 
 </script>

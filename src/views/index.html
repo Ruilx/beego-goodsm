@@ -47,7 +47,7 @@
             </li>
             {{template "navmenu.html" .}}
             <li class="nav-item">
-                <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">被禁用的项目</a>
+                <a class="nav-link disabled font-weight-bolder" href="#" tabindex="-1" aria-disabled="true">{{config "String" "store_name" "欢迎使用"}}</a>
             </li>
         </ul>
         <form class="form-inline my-2 my-lg-0" id="search-form">
@@ -60,7 +60,7 @@
 <div class="container mt-5 col-xs-12" id="jumbotron">
     <div class="jumbotron">
         {{if not .name}}
-            <h1 class="display-4">欢迎使用</h1>
+            <h1 class="display-4">{{if not $haveGoods}}欢迎使用{{else}}{{config "String" "store_name" "欢迎使用"}}{{end}}</h1>
             <p class="lead">Goods Manager系统会帮助您记录您店中货物的进出口的详情和累计的售出量, 您在每次售货或货物变更的时候即时操作, 系统将在每次操作后对记录和统计做出更新, 方便定时统计.</p>
             {{if not $haveGoods}}
                 <hr class="my-4">

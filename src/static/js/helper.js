@@ -8,7 +8,7 @@ function ajax_gen(url, data1, success, error, logical_failed = undefined, contex
 		success: function(ret_data, textStatus, jqXHR){
 			let ret = undefined;
 			if(typeof(textStatus) === "string" && textStatus === "success"){
-				if(typeof(ret_data) == "object" && ret_data.code === 200){
+				if(typeof(ret_data) == "object" && ret_data.code >= 0){
 					if(typeof(success) == "function"){
 						ret = success(ret_data, textStatus, jqXHR);
 					}else{

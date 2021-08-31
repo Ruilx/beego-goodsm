@@ -52,7 +52,7 @@
             </li>
             {{template "navmenu.html" .}}
             <li class="nav-item">
-                <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">被禁用的项目</a>
+                <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">{{config "String" "store_name" "欢迎使用"}}</a>
             </li>
         </ul>
     </div>
@@ -129,7 +129,10 @@
                                 <label class="col-sm-2 d-none d-sm-block col-xs-12 col-form-label text-right" for="image">上传照片</label>
                                 <label class="col-sm-2 d-sm-none col-xs-12 col-form-label" for="image">上传照片</label>
                                 <div class="col-sm-10 col-xs-12">
-                                    <input type="file" class="form-control-file" id="image" name="image">
+                                    <div class="row clearfix">
+                                        <input type="file" class="form-control-file col-sm-4 col-xs-4" id="image" name="image">
+                                        <label class="col-sm-8 col-xs-8 col-form-label">上传照片类型应为jpg/jpeg/png/bmp其中之一, 照片大小应小于5M.</label>
+                                    </div>
                                 </div>
                             </div>
                             <div class="form-group row">
@@ -367,7 +370,7 @@
                     show: true
                 });
             }else{
-                if(msg !== ""){
+                if(msg === ""){
                     msg = "服务器未回复任何错误信息.";
                 }
                 modal_for_failed.find(".msg").html(msg);
@@ -409,7 +412,7 @@
             }
             if(res_data.data["goods"].length <= 0){
                 set_loading_mask(loadingMask, false);
-                console.warn("not found " + name1 + " on server goods registration.")
+                console.info("not found " + name1 + " on server goods registration.")
                 return;
             }
             let modal = $("#modal_for_exists"),
