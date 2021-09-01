@@ -43,13 +43,13 @@
     </div>
 </nav>
 
-<div class="container mt-5 col-xs-12" id="main">
+<div class="mx-md-5 mt-5 col-xs-12" id="main">
     <div class="row clearfix">
         <div class="col">
             <div class="card mb-3">
                 <div class="card-header d-flex flex-row">
                     <div class="form-inline flex-grow-1">
-                        <span class="align-middle mb-0">售卖统计</span>
+                        <span class="align-middle mb-0">售货历史</span>
                     </div>
                     <div class="form-inline">
                         <div class="input-group">
@@ -65,19 +65,64 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <table class="table">
+                    <table class="table table-striped table-hover table-sm" style="font-size: 12px">
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th></th>
+                                <th>时间</th>
+                                <th>事件</th>
+                                <th>货品ID</th>
+                                <th>货品名称</th>
+                                <th>货品描述</th>
+                                <th>货品定价</th>
+                                <th>货品图片</th>
+                                <th>数量</th>
+                                <th>总金额</th>
+                                <th>备注</th>
+                                <th>信息</th>
                             </tr>
                         </thead>
+                        <tbody>
+
+                            <tr style="max-height: 45px; ">
+                                <td scope="row">ID</td>
+                                <td>2021-09-01 12:30:00</td>
+                                <td>售出</td>
+                                <td>#10</td>
+                                <td>一件衣服</td>
+                                <td>这是一件衣服</td>
+                                <td>$15.00</td>
+                                <td><a class="" href="static/upload/origin/e7f39984088c725f11835b396ff26a5b.jpg" target="_blank">查看</a></td>
+                                <td>2</td>
+                                <td>$30.00</td>
+                                <td>这是一行备注</td>
+                                <td><span class="text-break">信息[售卖]1...1.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span></td>
+                            </tr>
+
+                            <tr>
+                                <td scope="row">ID</td>
+                                <td>2021-09-01 12:30:00</td>
+                                <td>售出</td>
+                                <td>#10</td>
+                                <td>一件衣服</td>
+                                <td>这是一件衣服</td>
+                                <td>$15.00</td>
+                                <td><a class="" href="static/upload/origin/e7f39984088c725f11835b396ff26a5b.jpg" target="_blank">查看</a></td>
+                                <td>2</td>
+                                <td>$30.00</td>
+                                <td>这是一行备注</td>
+                                <td><span class="text-break">信息[售卖]1...1.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span></td>
+                            </tr>
+
+                        </tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+{{template "footer.html" .}}
 
 <script type="text/javascript" src="static/js/jquery.min.js"></script>
 <script type="text/javascript" src="static/js/bootstrap.bundle.min.js"></script>

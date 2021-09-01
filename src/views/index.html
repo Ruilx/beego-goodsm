@@ -9,7 +9,7 @@
     <link href="static/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .ctrl-box {
-            min-width: 112px
+            min-width: 113px
         }
         .desc-box {
             height: 66px;
@@ -132,7 +132,7 @@
                             <div class="card mb-3">
                                 <div class="row no-gutters">
                                     <div class="col-md-3 d-md-none d-lg-block" style="height: 200px">
-                                        <a href="{{if .image}}/static/upload/origin/{{.image}}{{else}}javascript:void(0);{{end}}" target="_blank" title="点此查看大图">
+                                        <a href="{{if .image}}/static/upload/origin/{{.image}}{{else}}javascript:void(0);{{end}}" {{if .image}}target="_blank" title="点此查看大图"{{end}}>
                                             <img src="{{if .image}}/static/upload/thumb/{{.image}}{{else}}/static/image/nopre.png{{end}}" alt="{{.image}}" style="object-fit: cover; width:100%; height:100%">
                                         </a>
                                     </div>
