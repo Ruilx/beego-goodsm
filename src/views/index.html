@@ -205,16 +205,33 @@
 </div>
 
 <!-- message toast -->
-<div class="toast" style="position: fixed; top: 50px; right: 5px; min-width:33.3%" id="msg-toast">
-    <div class="toast-header bg-primary text-white">
-        <strong class="mr-auto">提示信息</strong>
-        <small></small>
-        <button type="button" class="ml-2 mb-1 close" data-dismiss="toast">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    <div class="toast-body">
-        $message
+<!--<div class="toast" style="position: fixed; top: 50px; right: 5px; min-width:33.3%" id="msg-toast">-->
+<!--    <div class="toast-header bg-primary text-white">-->
+<!--        <strong class="mr-auto">提示信息</strong>-->
+<!--        <small></small>-->
+<!--        <button type="button" class="ml-2 mb-1 close" data-dismiss="toast">-->
+<!--            <span aria-hidden="true">&times;</span>-->
+<!--        </button>-->
+<!--    </div>-->
+<!--    <div class="toast-body">-->
+<!--        $message-->
+<!--    </div>-->
+<!--</div>-->
+
+<!-- message modal -->
+<div class="modal fade" id="msg-modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">提示信息</h5>
+            </div>
+            <div class="modal-body">
+                $message
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" disabled>请稍候...</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -529,18 +546,19 @@
                 }
             },
             show_msg_toast = function(msg, config = null){
-                let toast = $("#msg-toast"),
-                    toast_msg = toast.find(".toast-body"),
+                let toast = $("#msg-modal"),
+                    toast_msg = toast.find(".modal-body"),
                     conf = config || {
-                        animation: true,
-                        autoide: true,
-                        delay: 3000,
+                        backdrop: "static",
+                        keyboard: false,
+                        focus: true,
+                        show: true
                     };
                 if(typeof(msg) !== "string" || msg === ""){
                     return;
                 }
                 toast_msg.html(msg);
-                toast.toast(conf).toast("show");
+                toast.modal(conf);
             },
             _ = function(){
                 let good_sell_modal = $("#modal_for_sale");

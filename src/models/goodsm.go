@@ -92,7 +92,7 @@ func init() {
 		err    error
 	)
 
-	orm.Debug = false
+	orm.Debug = true
 
 	if dbPath, err = web.AppConfig.String("db_path"); err != nil {
 		panic("Cannot find 'dbPath' in app config: " + err.Error())
@@ -517,7 +517,7 @@ func AddUpdateHistory(good *Good, oldGood *Good, remark string) (id int64, err e
 // 读取售货历史表
 // 输入: 开始时间, 结束时间, 事件, 名称, 排序(ORDER)
 // 返回: history序列, err
-func GoodHistoryByName(startTime time.Time, endTime time.Time, event string, name string, order int) (mh []History, err error) {
+func GoodHistoryByName(startTime *time.Time, endTime *time.Time, event string, name string, order int) (mh []History, err error) {
 	ormHandle := orm.NewOrmUsingDB(DBNAME)
 	queryCond := ormHandle.QueryTable(&History{})
 
@@ -586,7 +586,7 @@ func StatEventSummary(startTime *time.Time, endTime *time.Time, name string, eve
 		whe = append(whe, "event = '"+strings.Replace(event, "'", "", -1)+"'")
 	}
 	if name = strings.Replace(name, "'", "", -1); name != "" {
-		whe = append(whe, "name like '%" + name + "%'")
+		whe = append(whe, "good_name like '%" + name + "%'")
 	}
 	whe = append(whe, "create_time >= '" + startTime.Format(common.WiredTime) + "'")
 	whe = append(whe, "create_time <= '" + endTime.Format(common.WiredTime) + "'")

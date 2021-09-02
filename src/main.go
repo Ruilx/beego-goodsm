@@ -83,13 +83,13 @@ func initialize() (err error) {
 	if dir == "" {
 		return errors.New("failed while trying to find current directory. executable path: " + dir)
 	}
-	if err = createDirectory(dir + common.IMAGE_UPLOAD_PATH); err != nil {
+	if err = createDirectory(dir + "/" + common.IMAGE_UPLOAD_PATH); err != nil {
 		return
 	}
-	if err = createDirectory(dir + common.IMAGE_ORIGIN_PATH_PREFIX); err != nil {
+	if err = createDirectory(dir + "/" + common.IMAGE_ORIGIN_PATH_PREFIX); err != nil {
 		return
 	}
-	if err = createDirectory(dir + common.IMAGE_THUMB_PATH_PREFIX); err != nil {
+	if err = createDirectory(dir + "/" + common.IMAGE_THUMB_PATH_PREFIX); err != nil {
 		return
 	}
 	beego.BConfig.WebConfig.AutoRender = true

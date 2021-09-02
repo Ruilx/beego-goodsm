@@ -86,7 +86,7 @@
                         {{if .statErrorStr}}
                             时段统计失败: {{.statErrorStr}}
                         {{else}}
-                            <p>时间段{{.startDate}}至{{.endDate}} 售出{{.statSumQuantity}}件, 售出共计{{.statSumMoney}}元, 利润共计{{.statSumProfits}}元.</p>
+                            <p>{{if .name}}筛选 <strong>{{.name}}</strong>, {{end}}时间段{{.startDate}}至{{.endDate}} 售出{{.statSumQuantity}}件, 售出共计{{.statSumMoney}}元, 利润共计{{.statSumProfits}}元.</p>
                         {{end}}
                         <div class="table-responsive-lg" style="font-size: 12px">
                             <table class="table table-striped table-hover table-sm" >
@@ -223,9 +223,15 @@
             e.preventDefault()
             let name = $(this).find("input[name=name]").val();
             if (name !== ""){
-                $("search").click();
+                $("#search").click();
             }
-        })
+        });
+        // $("#search-form .btn[type=submit]").click(function(){
+        //     let name = $("#search-form").find("input[name=name]").val()
+        //     if(name !== ""){
+        //         $("#search").click();
+        //     }
+        // });
     })
 
 </script>

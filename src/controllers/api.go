@@ -477,6 +477,13 @@ func (c *MainController) UpdGood() {
 		updCols = append(updCols, "image")
 	}
 
+	oldGood, err := models.GetGoodsById(int32(idi))
+	if err != nil {
+		c.log.Error("[Sell Good] db error: ", err.Error())
+		c.AjaxSetResult(500, "database error: "+err.Error())
+		return
+	}
+
 	insertId, err := models.UpdateGoodsById(&good, updCols...)
 	if err != nil {
 		c.log.Error("[AddGoods] Database error: " + err.Error())
@@ -484,7 +491,24 @@ func (c *MainController) UpdGood() {
 		return
 	}
 
-	c.res.Data["id"] = insertId
+	var resultHisId int64
+
+	// writing sell history
+	tryTimes := 5
+	i := 0
+	for i = 0; i < tryTimes; i++ {
+		if resultHisId, err = models.AddUpdateHistory(oldGood, good, "更新信息"); err == nil {
+			break
+		}
+	}
+	if i >= tryTimes && err != nil {
+		c.log.Error("cannot insert good history, db error: " + err.Error())
+		c.AjaxSetResult(500, "cannot insert good history, db error: "+err.Error())
+		return
+	}
+
+	c.res.Data["result_id"] = insertId
+	c.res.Data["result_his_id"] = resultHisId
 	c.AjaxSetResult(200, "success")
 	return
 }

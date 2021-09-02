@@ -29,6 +29,8 @@ func (c *HistoryController) Get(){
 	if name != ""{
 		name = strings.Replace(name, "'", "\\'", -1)
 	}
+	c.Data["name"] = name
+
 	now := time.Now()
 	startTime, _ := common.GetTimeBeginning("day", &now)
 	if startTimeStr != ""{
@@ -36,14 +38,16 @@ func (c *HistoryController) Get(){
 		if err != nil {
 			startTime, _ = common.GetTimeBeginning("day", &now)
 		}
+		startTime, _ = common.GetTimeBeginning("day", &startTime)
 	}
 	c.Data["startDate"] = startTime.Format(common.WiredDate)
-	endTime, _ := common.GetTimeBeginning("day", &now)
+	endTime, _ := common.GetTimeEnding("day", &now)
 	if endTimeStr != ""{
 		endTime, err = time.Parse(common.WiredDate, endTimeStr)
 		if err != nil {
-			endTime, _ = common.GetTimeBeginning("day", &now)
+			endTime, _ = common.GetTimeEnding("day", &now)
 		}
+		endTime, _ = common.GetTimeEnding("day", &endTime)
 	}
 	c.Data["endDate"] = endTime.Format(common.WiredDate)
 
@@ -75,7 +79,7 @@ func (c *HistoryController) Get(){
 		c.Data["statSumProfits"] = strconv.FormatFloat(stat[models.STAT_SUM_PROFITS_KEY], 'f', 2, 64)
 	}
 
-	his, err := models.GoodHistoryByName(startTime, endTime, event, name, order)
+	his, err := models.GoodHistoryByName(&startTime, &endTime, event, name, order)
 	var history []map[string]interface{}
 	if err != nil {
 		c.Data["errorStr"] = "服务器出现错误: " + err.Error()

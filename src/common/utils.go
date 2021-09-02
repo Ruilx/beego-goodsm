@@ -322,3 +322,52 @@ func GetTimeBeginning(key string, t1 *time.Time)(t time.Time, err error){
 	}
 	return t, nil
 }
+
+func GetTimeEnding(key string, t1 *time.Time)(t time.Time, err error){
+	nsecMax := 999999999
+	dayCountFunc := func(t1 *time.Time) (int, error) {
+		leapYearFunc := func(year int) int {
+			if year % 100 == 0 && year % 400 == 0 {
+				return 29
+			}else if year % 4 == 0 {
+				return 29
+			}
+			return 28
+		}
+		switch t1.Month(){
+		case 1,3,5,7,8,10,12:
+			return 31, nil
+		case 4,6,9,11:
+			return 30, nil
+		case 2:
+			return leapYearFunc(t1.Year()), nil
+		default:
+			return 0, errors.New("time has an invalid month")
+		}
+	}
+	switch key{
+	case "second":
+		t = time.Date(t1.Year(), t1.Month(), t1.Day(), t1.Hour(), t1.Minute(), t1.Second(), nsecMax, time.Local)
+	case "minute":
+		t = time.Date(t1.Year(), t1.Month(), t1.Day(), t1.Hour(), t1.Minute(), 59, nsecMax, time.Local)
+	case "hour":
+		t = time.Date(t1.Year(), t1.Month(), t1.Day(), t1.Hour(), 59, 59, nsecMax, time.Local)
+	case "day":
+		t = time.Date(t1.Year(), t1.Month(), t1.Day(), 23, 59, 59, nsecMax, time.Local)
+	case "month":
+		dayCount, err := dayCountFunc(t1)
+		if err != nil {
+			return time.Time{}, err
+		}
+		t = time.Date(t1.Year(), t1.Month(), dayCount, 23, 59, 59, nsecMax, time.Local)
+	case "year":
+		dayCount, err := dayCountFunc(t1)
+		if err != nil{
+			return time.Time{}, err
+		}
+		t = time.Date(t1.Year(), 12, dayCount, 23, 59, 59, nsecMax, time.Local)
+	default:
+		return *t1, errors.New("key is not valid. choices:(second, minute, hour, day, month, year)")
+	}
+	return t, nil
+}
