@@ -94,12 +94,12 @@
                 <h3 class=""><button class="btn btn-secondary" type="button" data-toggle="collapse" data-target="#info-collapse" role="button">信息</button></h3>
                 <div class="collapse" id="info-collapse">
                     <div class="card card-body">
-                        <p class="h4">截至{{.now}}, 现有货物 {{.totalGoodsCount}} 类, 库存总计 {{.totalGoodsQuantity}} 件.</p>
+                        <p class="h5">截至{{.now}}, 现有货物 {{.totalGoodsCount}} 类, 库存总计 {{.totalGoodsQuantity}} 件.</p>
                         {{if .dayStatOk}}
-                            <p class="h4"><strong>本日</strong>售出 {{.daySumQuantity}} 件, 售出总价 <small>¥</small>{{.daySumMoney}}, 参考日利息 <small>¥</small>{{.daySumProfits}}. </p>
+                            <p class="h5"><strong>本日</strong>售出 {{.daySumQuantity}} 件, 售出总价 <small>¥</small>{{.daySumMoney}}, 参考日利息 <small>¥</small>{{.daySumProfits}}. </p>
                         {{end}}
                         {{if .monthStatOk}}
-                            <p class="h4"><strong>本月</strong>售出 {{.monthSumQuantity}} 件, 售出总价 <small>¥</small>{{.monthSumMoney}}, 参考月利息 <small>¥</small>{{.monthSumProfits}}</p>
+                            <p class="h5"><strong>本月</strong>售出 {{.monthSumQuantity}} 件, 售出总价 <small>¥</small>{{.monthSumMoney}}, 参考月利息 <small>¥</small>{{.monthSumProfits}}</p>
                         {{end}}
                     </div>
                 </div>
@@ -140,7 +140,7 @@
                                         <div class="card-body good_card" data-id="{{.id}}" data-price="{{.price}}" data-quantity="{{.quantity}}" data-name="{{.name}}">
                                             <div class="d-flex flex-row">
                                                 <h4 class="card-title mr-2"><small>#{{.id}}</small></h4>
-                                                <h4 class="card-title flex-grow-1">{{.name}}</h4>
+                                                <h4 class="card-title flex-grow-1">{{.name}} <small>{{if .deleted}}<span class="badge badge-danger">已删除</span>{{end}}</small></h4>
                                                 <h4 class="card-title font-weight-bold price"><small>¥</small>{{.price}}</h4>
                                             </div>
                                             <p class="card-text text-wrap desc-box">{{.desc}}</p>

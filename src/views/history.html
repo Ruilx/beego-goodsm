@@ -13,7 +13,10 @@
     <script type="text/javascript" src="static/js/echarts.min.js"></script>
 </head>
 
-<body style="background-color: #E0E0E0">
+{{$hislen := (.history | len)}}
+{{$havehis := not (compare $hislen 0)}}
+
+<body style="background-color: #E0E0E0; overflow-x: hidden">
 <nav class="navbar navbar-expand-lg sticky-top navbar-light bg-light">
     <a class="navbar-brand" href="#">Goods Manager</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent">
@@ -47,89 +50,86 @@
     <div class="row clearfix">
         <div class="col">
             <div class="card mb-3">
-                <div class="card-header d-flex flex-row">
+                <div class="card-header d-sm-flex">
                     <div class="form-inline flex-grow-1">
                     <span class="align-middle mb-0 form-group">
-                        <select class="form-control">
-                            <option>登记历史</option>
-                            <option selected>售出历史</option>
-                            <option>进货历史</option>
-                            <option>撤柜历史</option>
-                            <option>删除历史</option>
-                            <option>恢复历史</option>
-                            <option>更新历史</option>
+                        <select class="form-control" id="event">
+                            <option value="登记" {{if eq .event "登记"}}selected{{end}} >登记历史</option>
+                            <option value="出售" {{if eq .event "售出"}}selected{{end}} >售出历史</option>
+                            <option value="进货" {{if eq .event "进货"}}selected{{end}} >进货历史</option>
+                            <option value="撤柜" {{if eq .event "撤柜"}}selected{{end}} >撤柜历史</option>
+                            <option value="删除" {{if eq .event "删除"}}selected{{end}} >删除历史</option>
+                            <option value="恢复" {{if eq .event "恢复"}}selected{{end}} >恢复历史</option>
+                            <option value="更新" {{if eq .event "更新"}}selected{{end}} >更新历史</option>
                         </select>
                     </span>
                     </div>
                     <div class="form-inline">
                         <div class="input-group">
-                            <input type="text" class="form-control" id="startdate" placeholder="yyyy-MM-dd" readonly>
+                            <input type="text" class="form-control" id="startdate" placeholder="yyyy-MM-dd" value="{{.startDate}}" readonly>
                             <div class="input-group-prepend">
                                 <span class="input-group-text">至</span>
                             </div>
-                            <input type="text" class="form-control" id="enddate" placeholder="yyyy-MM-dd" readonly>
+                            <input type="text" class="form-control" id="enddate" placeholder="yyyy-MM-dd" value="{{.endDate}}" readonly>
                             <div class="input-group-append">
-                                <button class="btn btn-outline-info" type="button" id="button-addon2">更新</button>
+                                <button class="btn btn-outline-info" type="button" id="search">查询</button>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="card-body">
-                    <p>时间段1111-11-11至2222-22-22 售出1111件, 售出共计2222元, 利润共计3333元.</p>
-                    <table class="table table-striped table-hover table-sm" style="font-size: 12px">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>时间</th>
-                                <th>事件</th>
-                                <th>货品ID</th>
-                                <th>货品名称</th>
-                                <th>货品描述</th>
-                                <th>货品定价</th>
-                                <th>货品图片</th>
-                                <th>数量</th>
-                                <th>总金额</th>
-                                <th>利润</th>
-                                <th>备注</th>
-                                <th>信息</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                    {{if .errorStr}}
+                        <p>{{.errorStr}}</p>
+                    {{else if not $havehis}}
+                        <p>未找到相应内容.</p>
+                    {{else}}
+                        {{if .statErrorStr}}
+                            时段统计失败: {{.statErrorStr}}
+                        {{else}}
+                            <p>时间段{{.startDate}}至{{.endDate}} 售出{{.statSumQuantity}}件, 售出共计{{.statSumMoney}}元, 利润共计{{.statSumProfits}}元.</p>
+                        {{end}}
+                        <div class="table-responsive-lg" style="font-size: 12px">
+                            <table class="table table-striped table-hover table-sm" >
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>时间</th>
+                                        <th>事件</th>
+                                        <th>货品ID</th>
+                                        <th>货品名称</th>
+                                        <th>货品描述</th>
+                                        <th>货品定价</th>
+                                        <th>货品图片</th>
+                                        <th>数量</th>
+                                        <th>总金额</th>
+                                        <th>利润</th>
+                                        <th>备注</th>
+                                        <th>信息</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{range .history}}
+                                        <tr style="max-height: 45px; ">
+                                            <td scope="row">{{.id}}</td>
+                                            <td>{{.createtime}}</td>
+                                            <td>{{.event}}</td>
+                                            <td>#{{.goodid}}</td>
+                                            <td>{{.goodname}}</td>
+                                            <td><span class="text-break">{{.gooddesc}}</span></td>
+                                            <td>¥{{.goodprice}}</td>
+                                            <td>{{if .goodimage}}<a href="static/upload/origin/{{.goodimage}}" target="_blank">查看</a>{{end}}</td>
+                                            <td>{{.quantity}}</td>
+                                            <td>¥{{.money}}</td>
+                                            <td>¥{{.profits}}</td>
+                                            <td>{{.remark}}</td>
+                                            <td><span class="text-break">{{.info}}</span></td>
+                                        </tr>
+                                    {{end}}
 
-                            <tr style="max-height: 45px; ">
-                                <td scope="row">ID</td>
-                                <td>2021-09-01 12:30:00</td>
-                                <td>售出</td>
-                                <td>#10</td>
-                                <td>一件衣服</td>
-                                <td>这是一件衣服</td>
-                                <td>$15.00</td>
-                                <td><a class="" href="static/upload/origin/e7f39984088c725f11835b396ff26a5b.jpg" target="_blank">查看</a></td>
-                                <td>2</td>
-                                <td>$30.00</td>
-                                <td>$8.00</td>
-                                <td>这是一行备注</td>
-                                <td><span class="text-break">信息[售卖]1...1.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span></td>
-                            </tr>
-
-                            <tr>
-                                <td scope="row">ID</td>
-                                <td>2021-09-01 12:30:00</td>
-                                <td>售出</td>
-                                <td>#10</td>
-                                <td>一件衣服</td>
-                                <td>这是一件衣服</td>
-                                <td>$15.00</td>
-                                <td><a class="" href="static/upload/origin/e7f39984088c725f11835b396ff26a5b.jpg" target="_blank">查看</a></td>
-                                <td>2</td>
-                                <td>$30.00</td>
-                                <td>$8.00</td>
-                                <td>这是一行备注</td>
-                                <td><span class="text-break">信息[售卖]1...1.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span></td>
-                            </tr>
-
-                        </tbody>
-                    </table>
+                                </tbody>
+                            </table>
+                        </div>
+                    {{end}}
                 </div>
             </div>
         </div>
@@ -176,8 +176,6 @@
                 togglePeriod: '切换周期',
                 selectTime: '选择时间'
             };
-        $("#startdate").val(moment().format(dateFormat));
-        $("#enddate").val(moment().format(dateFormat));
         $("#startdate").datetimepicker({
             format: dateFormat,
             ignoreReadonly: true,
@@ -189,7 +187,7 @@
             collapse: true,
             tooltips: tooltips,
             minDate: "2000-01-01",
-            maxDate: moment().format("YYYY-MM-DD"),
+            //maxDate: moment().format("YYYY-MM-DD"),
             showTodayButton: true,
         });
         $("#enddate").datetimepicker({
@@ -203,8 +201,30 @@
             collapse: true,
             tooltips: tooltips,
             minDate: "2000-01-01",
-            maxDate: moment().format("YYYY-MM-DD"),
+            //maxDate: moment().format("YYYY-MM-DD"),
             showTodayButton: true,
+        });
+        $("#search").click(function(){
+            let nameSearchFormDom = $("#search-form"),
+                name = nameSearchFormDom.find("input[name=name]").val(),
+                startDate = $("#startdate").val(),
+                endDate = $("#enddate").val(),
+                event = $("#event").val(),
+                params = [
+                    "name=" + name,
+                    "st=" + startDate,
+                    "et=" + endDate,
+                    "e=" + event
+                ],
+                redirect = "/his?" + params.join("&");
+            window.location.href = redirect
+        });
+        $("#search-form").submit(function(e){
+            e.preventDefault()
+            let name = $(this).find("input[name=name]").val();
+            if (name !== ""){
+                $("search").click();
+            }
         })
     })
 

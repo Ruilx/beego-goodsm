@@ -250,6 +250,10 @@ func Struct2Map(stru interface{}, lowerKey bool) (mp map[string]interface{}, err
 			mp[name] = valu.Complex()
 		case "string":
 			mp[name] = valu.String()
+		case "bool":
+			mp[name] = valu.Bool()
+		default:
+			mp[name] = valu.String()
 		}
 	}
 	return mp, nil

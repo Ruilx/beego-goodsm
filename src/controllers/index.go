@@ -55,22 +55,22 @@ func (c *IndexController) Get() {
 
 	dayStart, err := common.GetTimeBeginning("day", &now)
 	if err == nil{
-		dayStat, err := models.StatSoldSummary(&dayStart, &now, models.STAT_SUM_QUANTITY | models.STAT_SUM_MONEY | models.STAT_SUM_PROFITS)
+		dayStat, err := models.StatSoldSummary(&dayStart, &now, "", models.STAT_SUM_QUANTITY | models.STAT_SUM_MONEY | models.STAT_SUM_PROFITS)
 		if err == nil {
 			c.Data["dayStatOk"] = true
-			c.Data["daySumQuantity"] = dayStat[models.STAT_SUM_QUANTITY_KEY]
-			c.Data["daySumMoney"] = dayStat[models.STAT_SUM_MONEY_KEY]
-			c.Data["daySumProfits"] = dayStat[models.STAT_SUM_PROFITS_KEY]
+			c.Data["daySumQuantity"] = strconv.FormatFloat(dayStat[models.STAT_SUM_QUANTITY_KEY], 'f', 0, 64)
+			c.Data["daySumMoney"] = strconv.FormatFloat(dayStat[models.STAT_SUM_MONEY_KEY], 'f', 2, 64)
+			c.Data["daySumProfits"] = strconv.FormatFloat(dayStat[models.STAT_SUM_PROFITS_KEY], 'f', 2, 64)
 		}
 	}
 	monthStart, err := common.GetTimeBeginning("month", &now)
 	if err == nil{
-		monthStat, err := models.StatSoldSummary(&monthStart, &now, models.STAT_SUM_QUANTITY | models.STAT_SUM_MONEY | models.STAT_SUM_PROFITS)
+		monthStat, err := models.StatSoldSummary(&monthStart, &now, "", models.STAT_SUM_QUANTITY | models.STAT_SUM_MONEY | models.STAT_SUM_PROFITS)
 		if err == nil {
 			c.Data["monthStatOk"] = true
-			c.Data["monthSumQuantity"] = monthStat[models.STAT_SUM_QUANTITY_KEY]
-			c.Data["monthSumMoney"] = monthStat[models.STAT_SUM_MONEY_KEY]
-			c.Data["monthSumProfits"] = monthStat[models.STAT_SUM_PROFITS_KEY]
+			c.Data["monthSumQuantity"] = strconv.FormatFloat(monthStat[models.STAT_SUM_QUANTITY_KEY], 'f', 0, 64)
+			c.Data["monthSumMoney"] = strconv.FormatFloat(monthStat[models.STAT_SUM_MONEY_KEY], 'f', 2, 64)
+			c.Data["monthSumProfits"] = strconv.FormatFloat(monthStat[models.STAT_SUM_PROFITS_KEY], 'f', 2, 64)
 		}
 	}
 

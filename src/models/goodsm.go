@@ -168,6 +168,7 @@ func GetGoods(name string, order int, exact bool) (ml []Good, err error) {
 			queryCond = queryCond.Filter("name__icontains", name)
 		}
 	}
+	queryCond = queryCond.Filter("deleted", "0")
 
 	if order == ORDERBY_UNKNOWN || order == ORDERBY_ASC {
 		queryCond = queryCond.OrderBy("create_time")
@@ -514,9 +515,9 @@ func AddUpdateHistory(good *Good, oldGood *Good, remark string) (id int64, err e
 }
 
 // 读取售货历史表
-// 输入: 开始时间, 结束时间, 名称, 排序(ORDER)
+// 输入: 开始时间, 结束时间, 事件, 名称, 排序(ORDER)
 // 返回: history序列, err
-func GoodHistoryByName(startTime time.Time, endTime time.Time, name string, order int) (mh []History, err error) {
+func GoodHistoryByName(startTime time.Time, endTime time.Time, event string, name string, order int) (mh []History, err error) {
 	ormHandle := orm.NewOrmUsingDB(DBNAME)
 	queryCond := ormHandle.QueryTable(&History{})
 
@@ -528,6 +529,9 @@ func GoodHistoryByName(startTime time.Time, endTime time.Time, name string, orde
 	}
 	if name != "" {
 		queryCond = queryCond.Filter("good_name__icontains", name)
+	}
+	if event != "" {
+		queryCond = queryCond.Filter("event__contains", event)
 	}
 
 	if order == ORDERBY_UNKNOWN || order == ORDERBY_DESC {
@@ -571,14 +575,19 @@ func GoodHistory(startTime *time.Time, endTime *time.Time, id int64, order int) 
 	return result, err
 }
 
-func StatEventSummary(startTime *time.Time, endTime *time.Time, event string, stat int32)(result map[string]float64, err error){
+func StatEventSummary(startTime *time.Time, endTime *time.Time, name string, event string, stat int32)(result map[string]float64, err error){
 	o := orm.NewOrmUsingDB(DBNAME)
 
 	sql := "Select {SELECT} from history where {WHERE}"
 	sel := make([]string, 0, 4)
-	whe := make([]string, 0, 4)
+	whe := make([]string, 0, 5)
 
-	whe = append(whe, "event = '" + strings.Replace(event, "'", "", -1) + "'")
+	if event != "" {
+		whe = append(whe, "event = '"+strings.Replace(event, "'", "", -1)+"'")
+	}
+	if name = strings.Replace(name, "'", "", -1); name != "" {
+		whe = append(whe, "name like '%" + name + "%'")
+	}
 	whe = append(whe, "create_time >= '" + startTime.Format(common.WiredTime) + "'")
 	whe = append(whe, "create_time <= '" + endTime.Format(common.WiredTime) + "'")
 	whe = append(whe, "status = 1")
@@ -629,20 +638,20 @@ func StatEventSummary(startTime *time.Time, endTime *time.Time, event string, st
 	return
 }
 
-func StatSoldSummary(startTime *time.Time, endTime *time.Time, stat int32)(result map[string]float64, err error){
-	return StatEventSummary(startTime, endTime, EVENT_SELL, stat)
+func StatSoldSummary(startTime *time.Time, endTime *time.Time, name string, stat int32)(result map[string]float64, err error){
+	return StatEventSummary(startTime, endTime, name, EVENT_SELL, stat)
 }
 
-func StatImportedSummary(startTime *time.Time, endTime *time.Time, stat int32)(result map[string]float64, err error){
-	return StatEventSummary(startTime, endTime, EVENT_IMPORT, stat)
+func StatImportedSummary(startTime *time.Time, endTime *time.Time, name string, stat int32)(result map[string]float64, err error){
+	return StatEventSummary(startTime, endTime, name, EVENT_IMPORT, stat)
 }
 
-func StatExportedSummary(startTime *time.Time, endTime *time.Time, stat int32)(result map[string]float64, err error){
-	return StatEventSummary(startTime, endTime, EVENT_EXPORT, stat)
+func StatExportedSummary(startTime *time.Time, endTime *time.Time, name string, stat int32)(result map[string]float64, err error){
+	return StatEventSummary(startTime, endTime, name, EVENT_EXPORT, stat)
 }
 
-func StatDeletedSummary(startTime *time.Time, endTime *time.Time, stat int32)(result map[string]float64, err error){
-	return StatEventSummary(startTime, endTime, EVENT_DELETE, stat)
+func StatDeletedSummary(startTime *time.Time, endTime *time.Time, name string, stat int32)(result map[string]float64, err error){
+	return StatEventSummary(startTime, endTime, name, EVENT_DELETE, stat)
 }
 
 // 售货历史通过Event获取
