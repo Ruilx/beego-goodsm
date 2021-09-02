@@ -92,7 +92,7 @@ func init() {
 		err    error
 	)
 
-	orm.Debug = true
+	orm.Debug = false
 
 	if dbPath, err = web.AppConfig.String("db_path"); err != nil {
 		panic("Cannot find 'dbPath' in app config: " + err.Error())

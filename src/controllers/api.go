@@ -557,6 +557,9 @@ func (c *MainController) SellGood() {
 		return
 	}
 
+	// 前台传来的pricef是单个售出的价格
+	pricef = pricef * float64(quantityi)
+
 	balance := thisGood.Quantity - quantityi
 	if balance < 0 {
 		c.log.Info("[Sell Good] sold to negative balance")

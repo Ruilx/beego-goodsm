@@ -31,7 +31,7 @@ const WiredTime = "2006-01-02 15:04:05"
 const WiredDate = "2006-01-02"
 
 const (
-	IMAGE_UPLOAD_PATH        = "/static/upload/"
+	IMAGE_UPLOAD_PATH        = "static/upload/"
 	IMAGE_ORIGIN_PATH_PREFIX = IMAGE_UPLOAD_PATH + "origin/"
 	IMAGE_THUMB_PATH_PREFIX  = IMAGE_UPLOAD_PATH + "thumb/"
 )
