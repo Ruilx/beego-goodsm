@@ -54,6 +54,7 @@
                     <div class="form-inline flex-grow-1">
                     <span class="align-middle mb-0 form-group">
                         <select class="form-control" id="event">
+                            <option value="all" {{if eq .event "all"}}selected{{end}} >全部历史</option>
                             <option value="登记" {{if eq .event "登记"}}selected{{end}} >登记历史</option>
                             <option value="出售" {{if eq .event "售出"}}selected{{end}} >售出历史</option>
                             <option value="进货" {{if eq .event "进货"}}selected{{end}} >进货历史</option>
@@ -84,9 +85,21 @@
                         <p>未找到相应内容.</p>
                     {{else}}
                         {{if .statErrorStr}}
-                            时段统计失败: {{.statErrorStr}}
-                        {{else}}
+                            <p>时段统计失败: {{.statErrorStr}}</p>
+                        {{else if compare .event `all`}}
+                            <p>全部历史列表</p>
+                        {{else if compare .event `登记`}}
+                            <p>{{if .name}}筛选 <strong>{{.name}}</strong>, {{end}}时间段{{.startDate}}至{{.endDate}} 登记{{.statSumQuantity}}件, 共计{{.statSumMoney}}元.</p>
+                        {{else if compare .event `售出`}}
                             <p>{{if .name}}筛选 <strong>{{.name}}</strong>, {{end}}时间段{{.startDate}}至{{.endDate}} 售出{{.statSumQuantity}}件, 售出共计{{.statSumMoney}}元, 利润共计{{.statSumProfits}}元.</p>
+                        {{else if compare .event `进货`}}
+                            <p>{{if .name}}筛选 <strong>{{.name}}</strong>, {{end}}时间段{{.startDate}}至{{.endDate}} 进货{{.statSumQuantity}}件, 共计{{.statSumMoney}}元.</p>
+                        {{else if compare .event `撤柜`}}
+                            <p>{{if .name}}筛选 <strong>{{.name}}</strong>, {{end}}时间段{{.startDate}}至{{.endDate}} 撤柜{{.statSumQuantity}}件, 共计{{.statSumMoney}}元.</p>
+                        {{else if compare .event `删除`}}
+                            <p>{{if .name}}筛选 <strong>{{.name}}</strong>, {{end}}时间段{{.startDate}}至{{.endDate}} 删除{{.statSumQuantity}}件, 共计{{.statSumMoney}}元.</p>
+                        {{else if compare .event `恢复`}}
+                            <p>{{if .name}}筛选 <strong>{{.name}}</strong>, {{end}}时间段{{.startDate}}至{{.endDate}} 恢复{{.statSumQuantity}}件, 共计{{.statSumMoney}}元.</p>
                         {{end}}
                         <div class="table-responsive-lg" style="font-size: 12px">
                             <table class="table table-striped table-hover table-sm" >
@@ -109,7 +122,7 @@
                                 </thead>
                                 <tbody>
                                     {{range .history}}
-                                        <tr style="max-height: 45px; ">
+                                        <tr {{if .color}}class="{{.color}}"{{end}}>
                                             <td scope="row">{{.id}}</td>
                                             <td>{{.createtime}}</td>
                                             <td>{{.event}}</td>

@@ -19,6 +19,18 @@ const (
 	CONF_HTTP_PORT      = "httpport"
 )
 
+func printLogo(){
+	version, err := beego.AppConfig.String("version")
+	fmt.Println("Beego=>  ______                   __               ")
+	fmt.Println("        / ____/____   ____   ____/ /_____ ____ ___ ")
+	fmt.Println("       / / __ / __ \\ / __ \\ / __  // ___// __ `__ \\")
+	fmt.Println("      / /_/ // /_/ // /_/ // /_/ /(__  )/ / / / / /")
+	fmt.Println("      \\____/ \\____/ \\____/ \\__,_//____//_/ /_/ /_/ ")
+	if err == nil {
+		fmt.Printf("%55s\n", "Ver: " + version)
+	}
+}
+
 func checkIpQrcode(ipstr string) {
 	ipInConf, err := beego.AppConfig.String(CONF_QRCODE_IP)
 	if err != nil {
@@ -103,6 +115,8 @@ func main() {
 		beego.BConfig.WebConfig.DirectoryIndex = true
 		beego.BConfig.WebConfig.StaticDir["/static"] = "static"
 	}
+	printLogo()
+
 	if beego.AppConfig == nil {
 		fmt.Println("Config lost, program will exit.")
 		os.Exit(1)

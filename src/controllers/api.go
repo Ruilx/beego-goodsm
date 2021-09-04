@@ -497,7 +497,7 @@ func (c *MainController) UpdGood() {
 	tryTimes := 5
 	i := 0
 	for i = 0; i < tryTimes; i++ {
-		if resultHisId, err = models.AddUpdateHistory(oldGood, good, "更新信息"); err == nil {
+		if resultHisId, err = models.AddUpdateHistory(oldGood, &good, "更新信息"); err == nil {
 			break
 		}
 	}

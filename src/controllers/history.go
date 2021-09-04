@@ -21,6 +21,7 @@ func (c *HistoryController) Prepare(){
 
 func (c *HistoryController) Get(){
 	var err error
+	colors := map[string]string{"登记":"table-light", "售出":"table-success", "进货":"table-info", "撤柜":"table-warning", "删除":"table-danger", "恢复":"table-secondary", "更新":"table-primary"}
 	name := c.Ctx.Input.Query("name")
 	startTimeStr := c.Ctx.Input.Query("st")
 	endTimeStr := c.Ctx.Input.Query("et")
@@ -65,10 +66,14 @@ func (c *HistoryController) Get(){
 		eventStr == models.EVENT_SELL ||
 		eventStr == models.EVENT_DELETE ||
 		eventStr == models.EVENT_RECOVER ||
-		eventStr == models.EVENT_UPDATE {
+		eventStr == models.EVENT_UPDATE ||
+		eventStr == "all"{
 		event = eventStr
 	}
 	c.Data["event"] = event
+	if eventStr == "all"{
+		event = ""
+	}
 
 	stat, err := models.StatEventSummary(&startTime, &endTime, name, event, models.STAT_SUM_QUANTITY | models.STAT_SUM_MONEY | models.STAT_SUM_PROFITS)
 	if err != nil {
@@ -98,6 +103,10 @@ func (c *HistoryController) Get(){
 				hh["profits"] = ""
 			}else{
 				hh["profits"] = strconv.FormatFloat(money - (goodPrice * float64(quantity)), 'f', 2, 64)
+			}
+
+			if event == ""{
+				hh["color"] = colors[hh["event"].(string)]
 			}
 			history = append(history, hh)
 		}
